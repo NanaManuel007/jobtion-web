@@ -200,6 +200,11 @@
 <div class="relative">
     {#if showModal}
         <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 py-5">
+            <Toast 
+    show={showToast}
+    message={toastMessage}
+    type={toastType}
+/>
             <div class="relative my-auto w-full max-w-[95%] rounded-lg bg-white p-8">
                 <button
                     onclick={handleClose}
@@ -383,7 +388,7 @@
         </div>
     {/if}
 
-    <div class="fixed inset-0 z-[60] pointer-events-none">
+    <!-- <div class="fixed inset-0 z-[60] pointer-events-none">
         {#if showToast}
             <div class="absolute top-4 right-4 pointer-events-auto">
                 <Toast 
@@ -393,5 +398,5 @@
                 />
             </div>
         {/if}
-    </div>
+    </div> -->
 </div>
