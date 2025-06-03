@@ -45,6 +45,7 @@ export const API_CONFIG = {
             SETINTVERVIEW: 'set-interview',
 
         },
+        
         CANDIDATES: {
             LIST: 'get-all-candidate',
             DETAILS: 'fetch-single-candidate',

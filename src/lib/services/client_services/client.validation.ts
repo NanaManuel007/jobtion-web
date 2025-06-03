@@ -11,12 +11,8 @@ export const clientFormSchema = z.object({
   companyAddress: z.string().min(5, { message: "Address must be at least 5 characters" }),
   postalCode: z.string().min(3, { message: "Postal code is required" }),
   registrationNumber: z.string().min(1, { message: "Registration number is required" }),
-  website: z.string().regex(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/i, { 
-    message: "Please enter a valid website URL" 
-  }).optional().or(z.literal('')),
-  linkedin: z.string().regex(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/i, { 
-    message: "Please enter a valid LinkedIn URL" 
-  }).optional().or(z.literal('')),
+  website: z.string().optional(),
+  linkedin: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   mapsLocation: z.string().optional(),
