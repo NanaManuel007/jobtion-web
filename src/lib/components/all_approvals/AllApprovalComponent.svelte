@@ -17,7 +17,7 @@
     let endDate = $state('');
     let searchQuery = $state('');
     let selectedJobType = $state('all');
-    let selectedStatus = $state('all');
+    let selectedStatus = $state('Pending');
     let currentPage = $state(1);
     const itemsPerPage = 10;
     let totalPages = $state(1);
@@ -50,7 +50,7 @@
     // Convert TSM data to Approval format
     function convertTSMsToApprovals(tsmData: TSM[]): Approval[] {
         return tsmData
-            .filter(tsm => tsm.break_time_updated === 1 || tsm.break_time_updated === 0)
+            .filter(tsm => tsm.break_time_updated === 1 || tsm.break_time_updated === 0 || tsm.break_time_updated === 2 || tsm.break_time_updated === 3)
             .map(tsm => ({
                 id: tsm.id,
                 candidateName: `${tsm.first_name} ${tsm.last_name}`,
@@ -58,7 +58,7 @@
                 jobRole: tsm.job_title,
                 jobType: 'Temporary',
                 approvalType: 'Time Sheet',
-                status: tsm.break_time_updated === 2 ? 'Active' : 'Pending',
+                status: tsm.break_time_updated === 2 ? 'Approved' : tsm.break_time_updated === 1 ? 'Pending' :'Rejected',
                 totalAmount: tsm.amount,
                 date: tsm.day,
                 submittedStartTime: tsm.start,
@@ -163,25 +163,27 @@
             <!-- Job Type Filter -->
             <div class="min-w-[150px]">
                 <select
-                    bind:value={selectedJobType}
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
-                >
-                    <option value="all">All Job Types</option>
-                    <option value="Permanent">Permanent</option>
-                    <option value="Temporary">Temporary</option>
-                </select>
+                bind:value={selectedJobType}
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
+            >
+                <option value="all">All Job Types</option>
+                <option value="Permanent">Permanent</option>
+                <option value="Temporary">Temporary</option>
+            </select>
+
             </div>
 
             <!-- Status Filter -->
             <div class="min-w-[150px]">
-                <select
-                    bind:value={selectedStatus}
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
-                >
-                    <option value="all">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                </select>
+                      <select
+                bind:value={selectedStatus}
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
+            >
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
             </div>
 
             <!-- Date Filter -->

@@ -61,7 +61,7 @@ export const API_CONFIG = {
             LIST: 'get-all-tms',
             APPROVE: 'approve-tsm',
             UPDATE: 'update-tsm',
-            REJECT: 'update-tsm',
+            REJECT: 'reject-tsm',
         },
     }
 };

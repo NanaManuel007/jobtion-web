@@ -81,7 +81,9 @@
                 userTimesheets[candidateId].timeEntries = updatedEntries;
             }
 
-
+            setTimeout(() => {
+                onClose();
+            }, 2000);
         }
     } catch (error) {
         console.error('Error approving TSM:', error);
@@ -113,7 +115,9 @@ async function handleRejectEntry(entry: TimeEntry,candidateId:number,) {
                 });
                 userTimesheets[candidateId].timeEntries = updatedEntries;
             }
-
+            setTimeout(() => {
+                onClose();
+            }, 2000);
             // Switch to approved tab
             // selectedTab = 'approved';
         }
@@ -294,7 +298,7 @@ async function handleRejectEntry(entry: TimeEntry,candidateId:number,) {
                                         <label for="end-time" class="text-sm text-gray-500">Update End Time</label>
                                         <input
                                             type="time"
-                                            value={approval?.endTime === null? approval?.submittedEndTime:  approval?.endTime}
+                                            value={approval?.endTime || approval?.submittedEndTime || '17:00'}
                                             oninput={(e) => handleTimeUpdate('endTime', e.currentTarget.value)}
                                             class="w-full mt-1 px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
                                         />
