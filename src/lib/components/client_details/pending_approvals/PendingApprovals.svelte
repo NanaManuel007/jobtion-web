@@ -1,10 +1,13 @@
+
 <script lang="ts">
     import { fly } from 'svelte/transition';
     import { onMount } from 'svelte';
     import TMSDialog from './TMSDialog.svelte';
     import { tsms, isLoading, error, tsmActions } from '$lib/services/tsm_services/job.tsm.store';
-    import type { TSM } from '$lib/services/tsm_services/job.tsm.types';
+    import type { TSM,Approval } from '$lib/services/tsm_services/job.tsm.types';
 	import type { SelectedClientType } from '$lib/services/client_services/client.type';
+	// import { TSMService } from '$lib/services/tsm_services/job.tsm.services';
+	// import { candidateStore } from '$lib/services/candidate_services/candidate.store';
 
     const {client} = $props<{client:SelectedClientType}>();
     // State variables
@@ -14,57 +17,65 @@
     let endDate = $state('');
     let searchQuery = $state('');
     let selectedJobType = $state('all');
-    let selectedStatus = $state('all');
+    let selectedStatus = $state('Pending');
     let currentPage = $state(1);
     const itemsPerPage = 10;
     let totalPages = $state(1);
     let filteredApprovals = $state<Approval[]>([]);
-    let approvals = $state<Approval[]>([]);
 
-    interface Approval {
-        id: number;
-        candidateName: string;
-        candidateEmail: string;
-        jobRole: string;
-        jobType: string;
-        approvalType: string;
-        status: string;
-        totalAmount: number;
-        date: string;
-        submittedStartTime?: string;
-        submittedEndTime?: string;
-        submittedBreakTime?: string;
-        startTime?: string;
-        endTime?: string;
-        breakTime?: string;
-        tsmData?: TSM;
-    }
+    let approvals = $state<Approval[]>([]);
+        interface UserTimesheet {
+		userId: number;
+		timeEntries: TimeEntry[];
+	}
+    interface TimeEntry {
+		day: string;
+		date: string;
+		startTime: string;
+		tsm_id: number;
+		endTime: string;
+		breakTime: string;
+		amount: number;
+		status: number;
+	}
+    let userTimesheets: Record<number, UserTimesheet> = $state({});
+
 
     // Fetch data on mount
     onMount(() => {
         tsmActions.fetchAllTSMs();
     });
 
+
     // Convert TSM data to Approval format
     function convertTSMsToApprovals(tsmData: TSM[]): Approval[] {
-        return tsmData.map(tsm => ({
-            id: tsm.id,
-            candidateName: `${tsm.first_name} ${tsm.last_name}`,
-            candidateEmail: tsm.email,
-            jobRole: tsm.job_title,
-            jobType: 'Temporary',
-            approvalType: 'Time Sheet',
-            status: tsm.break_time_updated === 2 ? 'Active' : 'Pending',
-            totalAmount: tsm.amount,
-            date: tsm.day,
-            submittedStartTime: tsm.start,
-            submittedEndTime: tsm.end,
-            submittedBreakTime: tsm.break_time,
-            startTime: tsm.start,
-            endTime: tsm.end,
-            breakTime: tsm.break_time,
-            tsmData: tsm
-        }));
+
+
+    
+        return tsmData
+        .filter(tsm => {
+            const matches = tsm.client_id === client.client?.id;
+            console.log(`TSM ${tsm.id} client_id ${tsm.client_id} matches ${client.client.id}:`, matches);
+            return matches;
+        })
+            .map(tsm => ({
+                id: tsm.id,
+                candidateName: `${tsm.first_name} ${tsm.last_name}`,
+                candidateEmail: tsm.email,
+                jobRole: tsm.job_title,
+                jobType: 'Temporary',
+                approvalType: 'Time Sheet',
+                status: tsm.break_time_updated === 2 ? 'Approved' : tsm.break_time_updated === 1 ? 'Pending' :'Rejected',
+                totalAmount: tsm.amount,
+                date: tsm.day,
+                submittedStartTime: tsm.start,
+                submittedEndTime: tsm.end,
+                submittedBreakTime: tsm.break_time,
+                startTime: tsm.start,
+                endTime: tsm.end,
+                breakTime: tsm.break_time,
+                tsmData: tsm
+            }));
     }
 
     // Apply filters and pagination
@@ -111,9 +122,10 @@
 
     // React to TSM store changes
     $effect(() => {
-        if ($tsms) {
-            approvals = convertTSMsToApprovals($tsms);
-        }
+
+        if ($tsms && client.client?.id ) {
+        approvals = convertTSMsToApprovals($tsms);
+    }
     });
 
     // React to filter and TSM changes
@@ -159,25 +171,27 @@
             <!-- Job Type Filter -->
             <div class="min-w-[150px]">
                 <select
-                    bind:value={selectedJobType}
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
-                >
-                    <option value="all">All Job Types</option>
-                    <option value="Permanent">Permanent</option>
-                    <option value="Temporary">Temporary</option>
-                </select>
+                bind:value={selectedJobType}
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
+            >
+                <option value="all">All Job Types</option>
+                <option value="Permanent">Permanent</option>
+                <option value="Temporary">Temporary</option>
+            </select>
+
             </div>
 
             <!-- Status Filter -->
             <div class="min-w-[150px]">
-                <select
-                    bind:value={selectedStatus}
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
-                >
-                    <option value="all">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                </select>
+                      <select
+                bind:value={selectedStatus}
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-all"
+            >
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
             </div>
 
             <!-- Date Filter -->
@@ -309,7 +323,7 @@
 
 {#if showTMSDialog && selectedApproval}
     <TMSDialog 
-        bind:showDialog={showTMSDialog}
+        showDialog={showTMSDialog}
         approval={selectedApproval}
         onClose={() => {
             showTMSDialog = false;
