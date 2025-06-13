@@ -9,7 +9,7 @@
     export let error: string | undefined = undefined;
     export let min: string | number | undefined = undefined;
     export let max: string | number | undefined = undefined;
-    
+    export let step: string | number | undefined = undefined;
     // Generate a unique ID for each input field for accessibility
     const inputId = `input-${Math.random().toString(36).substring(2, 9)}`;
     
@@ -44,6 +44,7 @@
             {readonly}
             {min}
             {max}
+            {step}
             on:input={handleInput}
             class={inputClass}
             aria-invalid={error ? 'true' : 'false'}

@@ -7,6 +7,7 @@ export interface TSM {
     last_name: string;
     email: string;
     job_title: string;
+    location:string;
     client_id: number;
     day: string;
     start: string;
@@ -21,6 +22,8 @@ export interface Approval {
     id: number;
     candidateName: string;
     candidateEmail: string;
+    location:string;
+    amount:number;
     jobRole: string;
     jobType: string;
     approvalType: string;
@@ -42,6 +45,8 @@ export interface TSMUpdatePayload {
     start: string;
     end: string;
     break_time: string;
+    amount:number;
+    location:string;
 }
 
 export interface TimesheetEntry {

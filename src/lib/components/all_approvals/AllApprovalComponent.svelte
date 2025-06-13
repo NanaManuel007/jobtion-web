@@ -55,6 +55,7 @@
                 id: tsm.id,
                 candidateName: `${tsm.first_name} ${tsm.last_name}`,
                 candidateEmail: tsm.email,
+                location:tsm.location,
                 jobRole: tsm.job_title,
                 jobType: 'Temporary',
                 approvalType: 'Time Sheet',
@@ -67,7 +68,8 @@
                 startTime: tsm.start,
                 endTime: tsm.end,
                 breakTime: tsm.break_time,
-                tsmData: tsm
+                tsmData: tsm,
+                amount: tsm.amount
             }));
     }
 

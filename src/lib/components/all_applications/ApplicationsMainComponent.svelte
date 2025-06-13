@@ -45,6 +45,7 @@ $effect(() => {
     function handleInterview(application: Application) {
         selectedApplication = application;
         showInterviewDialog = true;
+        console.log("data selectec application ",selectedApplication)
     }
     function handleScheduleInterview(event: CustomEvent) {
     const interviewDetails = {
@@ -53,6 +54,8 @@ $effect(() => {
         interview_time: event.detail.interview_time,
         interview_invite_link: event.detail.interview_invite_link
     };
+
+    console.log("holding data ",interviewDetails)
     
     if (selectedApplication) {
         const updatedApplications = applications.map(app => 
@@ -374,11 +377,21 @@ $effect(() => {
                                                 </button>
                                                 <button
                                                     class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
-                                                    on:click={() => handleDecline(application)}
+                                                    on:click={() => handleReject(application)}
                                                     title="Decline"
                                                 >
                                                     <span class="material-icons-sharp text-sm">close</span>
                                                 </button>
+                                                <button 
+                                                on:click={() => handleInterview(application)}
+                                                aria-label="Schedule interview"
+                                                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
+                                                title={'Schedule Interview'}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
                                             {:else}
                                             <span class="text-sm text-gray-500">
                               
@@ -394,6 +407,13 @@ $effect(() => {
                                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                                                         </svg>
                                                     </button>
+                                                    <button
+                                                    class="w-8 h-8 flex items-center justify-center bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
+                                                    on:click={() => handleAccept(application)}
+                                                    title="Accept"
+                                                >
+                                                    <span class="material-icons-sharp text-sm">check</span>
+                                                </button>
                                                     <button 
                                                     aria-label="Schedule interview"
                                                         on:click={() => handleReject(application)}

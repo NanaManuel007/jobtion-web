@@ -26,13 +26,14 @@
   });
 
   function handleClick(event: MouseEvent) {
-    event.preventDefault();
-    if (onClick) {
-      onClick();
-    } else {
-      goto(href);
-    }
+  event.preventDefault();
+  if (onClick) {
+    onClick();
+  } else {
+    // Use goto with replaceState: false to preserve history
+    goto(href, { replaceState: false });
   }
+}
 </script>
 
 <a 

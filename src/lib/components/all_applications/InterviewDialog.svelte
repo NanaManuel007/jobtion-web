@@ -80,7 +80,7 @@
         if (application) {
             interviewDetails.date = application.interview_date;
             interviewDetails.time = application.interview_time;
-            interviewDetails.interviewBy = application.interview_by;
+            interviewDetails.interviewBy = application.company_name;
             interviewDetails.interviewLink = application.interview_invite_link;
         }
     });

@@ -141,9 +141,9 @@
         <InputField
             label={paymentLabel}
             type="number"
+            step="0.01"
             icon="attach_money"
             bind:value={jobData.amount}
-            required={true}
             placeholder={paymentPlaceholder}
         />
         {#if errors.amount}
