@@ -1,5 +1,5 @@
 import { API_CONFIG, getApiUrl } from '$lib/services/api';
-import type { TimesheetEntry, TSM, TSMUpdatePayload } from './job.tsm.types';
+import type { ReportRequestBody, ReportResponse, TimesheetEntry, TSM, TSMUpdatePayload } from './job.tsm.types';
 
 export class TSMService {
     static async getAllTSMs(): Promise<TSM[]> {
@@ -71,6 +71,8 @@ export class TSMService {
             return false;
         }
     }
+
+
 
     static async approveTSM(id: number): Promise<boolean> {
         try {
@@ -173,5 +175,75 @@ export class TSMService {
             return [];
         }
     }
+
+    //fetch report summary with date 
+    static async fetchReportSummary(requestBody: ReportRequestBody): Promise<ReportResponse> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                throw new Error('No access token found');
+            }
+            
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.REPORTS.GENERATEREPORT), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestBody),
+                mode: 'cors',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch report summary');
+            }
+            
+            const data = await response.json();
+            return data as ReportResponse;
+            
+        } catch (error) {
+            console.error('Error fetching report summary:', error);
+            throw error;
+        }
+    }
+
+    //generate payslip
+    static async generatePayslip(requestBody: ReportRequestBody): Promise<boolean> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                throw new Error('No access token found');
+            }
+            
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.REPORTS.GENERATEPAYSLIP), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestBody),
+                mode: 'cors',
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to generate payslip');
+            }
+            
+            const data = await response.json();
+            return data.success === true;
+        } catch (error) {
+            console.error('Error generating payslip:', error);
+            return false;
+        }
+    }
+
+
 
 }

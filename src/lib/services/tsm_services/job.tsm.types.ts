@@ -71,3 +71,61 @@ export interface TimesheetEntry {
     Owner?: string;
     Notes?: string;
   }
+
+  interface ReportRequestBody {
+    start_date: string;
+    end_date: string;
+}
+
+interface ReportCalculationDetails {
+    base_amount: number;
+    payment_type: string;
+    gross_hours: string;
+    break_hours: string;
+    decimal_hours: number;
+}
+
+interface PayrollRecord {
+    OurRef: string;
+    CompanyName: string;
+    FullAddress: string;
+    SlotStart: string;
+    'Sage Name': string;
+    CandidateID: number;
+    'Temp Name': string;
+    'Job title': string;
+    'PAYE/Self Emp': string;
+    ' Rate ': string;
+    ' Charge ': string;
+    ' TSPay ': string;
+    ' Margin ': string;
+    DecimalHours: number;
+    ' TotalInvoice ': string;
+    ' PlusVat ': string;
+    payroll_provider: string;
+    PONumber: string;
+    Owner: string;
+    Notes: string;
+    _calculation_details: ReportCalculationDetails;
+}
+
+interface ReportSummary {
+    total_records: number;
+    total_hours: number;
+    total_tspay: number;
+    total_invoice: number;
+    total_vat: number;
+    unique_companies: number;
+    unique_candidates: number;
+}
+
+interface ReportResponse {
+    success: boolean;
+    message: string;
+    data: {
+        summary: ReportSummary;
+        payroll_records: PayrollRecord[];
+    };
+}
+
+export type { ReportRequestBody, ReportResponse, PayrollRecord, ReportSummary };

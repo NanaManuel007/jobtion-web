@@ -1,96 +1,10 @@
-<!-- <script lang="ts">
-    import { onMount } from 'svelte';
-    import { reports, isLoading, error, tsmActions } from '$lib/services/tsm_services/job.tsm.store';
-    // import { onMount } from 'svelte';
 
-    let startDate = '';
-    let endDate = '';
-    let filteredReports:any = [];
-
-    $: {
-        if ($reports) {
-            filteredReports = $reports.filter(entry => {
-                if (!entry.SlotStart) return false;
-                
-                const entryDate = new Date(entry.SlotStart);
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-
-                // Set hours to 0 for accurate date comparison
-                start.setHours(0, 0, 0, 0);
-                end.setHours(23, 59, 59, 999);
-                entryDate.setHours(0, 0, 0, 0);
-
-                return entryDate >= start && entryDate <= end;
-            });
-        }
-    }
-    onMount(async () => {
-        try {
-            const success = await tsmActions.fetchReport();
-            if (!success) {
-                console.error('Failed to fetch report data');
-            }
-        } catch (err) {
-            console.error('Error in onMount:', err);
-        }
-    });
-
-    function exportToCSV() {
-        if (!filteredReports.length) return;
-
-        // Define headers based on table structure
-        const headers = [
-            'Reference', 'Company', 'Address', 'Start Date', 'Candidate', 'Job Title',
-            'Rate', 'Charge', 'Pay', 'Margin', 'Hours', 'Total', 'VAT', 'Payroll',
-            'PO Number', 'Owner', 'Notes'
-        ];
-
-        // Map data to match headers
-        const csvData = filteredReports.map((entry:any) => [
-            entry.byOurRef,
-            entry.CompanyName,
-            entry.FullAddress,
-            entry.SlotStart,
-            entry.TempName,
-            entry['Job title'],
-            entry.Rate,
-            entry.Charge,
-            entry.TSPay,
-            entry.Margin,
-            entry.DecimalHours,
-            entry.TotalInvoice,
-            entry.PlusVat,
-            entry.payroll_provider,
-            entry.PONumber,
-            entry.Owner,
-            entry.Notes
-        ]);
-
-        // Combine headers and data
-        const csvContent = [
-            headers.join(','),
-            ...csvData.map((row:any) => row.map((cell:any) => 
-                cell ? `"${cell.toString().replace(/"/g, '""')}"` : '""'
-            ).join(','))
-        ].join('\n');
-
-        // Create and trigger download
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `report_${startDate}_to_${endDate}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-</script> -->
 <script lang="ts">
     import { onMount } from 'svelte';
     import { reports, isLoading, error, tsmActions } from '$lib/services/tsm_services/job.tsm.store';
 	import type { TimesheetEntry } from '$lib/services/tsm_services/job.tsm.types';
 	import Toast from '../general_components/Toast.svelte';
+	import { TSMService } from '$lib/services/tsm_services/job.tsm.services';
 
     let { startDate, endDate } = $state({
         startDate: '',
@@ -98,6 +12,8 @@
     });
     let showToast = $state(false);
 	let toastMessage = $state('');
+    let isGeneratingPayslip = $state(false);
+    let hasExportedCSV = $state(false);
 	let toastType = $state<'success' | 'error'>('success');
     let filteredReports = $derived(() => {
         if (!$reports) return [];
@@ -130,70 +46,129 @@
     });
 
     function exportToCSV() {
-        console.log("clicked")
-        const currentReports = filteredReports();
-        if (!startDate && !endDate) {
+        if (!startDate || !endDate) {
             toastMessage = 'Please select both start and end dates';
+            toastType = 'error';
             showToast = true;
             return;
         }
 
-        if (!currentReports?.length) {
-            console.error('No reports available to export');
-            return;
-        }
-
         try {
-            // Define headers based on table structure
-            const headers = [
-                'Reference', 'Company', 'Address', 'Start Date', 'Candidate', 'Job Title',
-                'Rate', 'Charge', 'Pay', 'Margin', 'Hours', 'Total', 'VAT', 'Payroll',
-                'PO Number', 'Owner', 'Notes'
-            ];
+            TSMService.fetchReportSummary({
+                start_date: startDate, 
+                end_date: endDate   
+            }).then(response => {
+                // Create CSV from the response data
+                const headers = [
+                    'Reference', 'Company', 'Address', 'Start Date', 'Candidate', 'Job Title',
+                    'Rate', 'Charge', 'Pay', 'Margin', 'Hours', 'Total', 'VAT', 'Payroll',
+                    'PO Number', 'Owner', 'Notes'
+                ];
 
-            // Map data to match headers
-            const csvData = currentReports.map((entry) => [
-                entry.byOurRef || '',
-                entry.CompanyName || '',
-                entry.FullAddress || '',
-                entry.SlotStart || '',
-                entry.TempName || '',
-                entry['Job title'] || '',
-                entry.Rate || '',
-                entry.Charge || '',
-                entry.TSPay || '',
-                entry.Margin || '',
-                entry.DecimalHours || '',
-                entry.TotalInvoice || '',
-                entry.PlusVat || '',
-                entry.payroll_provider || '',
-                entry.PONumber || '',
-                entry.Owner || '',
-                entry.Notes || ''
-            ]);
+                // const csvData = response.payrollRecords.map(record => [
+                //     record.reference || '',
+                //     record.company || '',
+                //     record.address || '',
+                //     record.startDate || '',
+                //     record.candidate || '',
+                //     record.jobTitle || '',
+                //     record.rate || '',
+                //     record.charge || '',
+                //     record.pay || '',
+                //     record.margin || '',
+                //     record.hours || '',
+                //     record.total || '',
+                //     record.vat || '',
+                //     record.payrollProvider || '',
+                //     record.poNumber || '',
+                //     record.owner || '',
+                //     record.notes || ''
+                // ]);
+                    const csvData = response.data.payroll_records.map(record => [
+                    record.OurRef || '',
+                    record.CompanyName || '',
+                    record.FullAddress || '',
+                    record.SlotStart || '',
+                    record['Temp Name'] || '',
+                    record['Job title'] || '',
+                    record[' Rate '] || '',
+                    record[' Charge '] || '',
+                    record[' TSPay '] || '',
+                    record[' Margin '] || '',
+                    record.DecimalHours || '',
+                    record[' TotalInvoice '] || '',
+                    record[' PlusVat '] || '',
+                    record.payroll_provider || '',
+                    record.PONumber || '',
+                    record.Owner || '',
+                    record.Notes || ''
+                ]);
 
-            // Combine headers and data
-            const csvContent = [
-                headers.join(','),
-                ...csvData.map((row) => row.map((cell) => 
-                    `"${(cell || '').toString().replace(/"/g, '""')}"`
-                ).join(','))
-            ].join('\n');
+                const csvContent = [
+                    headers.join(','),
+                    ...csvData.map(row => row.map(cell => 
+                        `"${(cell || '').toString().replace(/"/g, '""')}"`
+                    ).join(','))
+                ].join('\n');
 
-            // Create and trigger download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `report_${startDate}_to_${endDate}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url); // Clean up the URL object
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `report_${startDate}_to_${endDate}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
 
-            console.log('CSV export completed successfully');
+                toastMessage = 'Report exported successfully';
+                toastType = 'success';
+                showToast = true;
+                hasExportedCSV = true;
+            }).catch(error => {
+                console.error('Error fetching report:', error);
+                toastMessage = 'Failed to generate report';
+                toastType = 'error';
+                showToast = true;
+            });
         } catch (error) {
             console.error('Error exporting CSV:', error);
+            toastMessage = 'Failed to export report';
+            toastType = 'error';
+            showToast = true;
+        }
+    }
+// wind breaker 
+    //payslip 
+    async function generatePayslip() {
+        if (!startDate || !endDate) {
+            toastMessage = 'Please select both start and end dates';
+            toastType = 'error';
+            showToast = true;
+            return;
+        }
+        isGeneratingPayslip = true;
+        try {
+            const success = await TSMService.generatePayslip({
+                start_date: startDate,
+                end_date: endDate
+            });
+
+            if (success) {
+                toastMessage = 'Payslip generated successfully';
+                toastType = 'success';
+            } else {
+                toastMessage = 'Failed to generate payslip';
+                toastType = 'error';
+            }
+            showToast = true;
+        } catch (error) {
+            console.error('Error generating payslip:', error);
+            toastMessage = 'Failed to generate payslip';
+            toastType = 'error';
+            showToast = true;
+        } finally {
+            isGeneratingPayslip = false;
         }
     }
     // Toast
@@ -234,12 +209,26 @@
                         />
                     </div>
                 </div>
+                <div class="flex gap-4">
+                    <button
+                    on:click={exportToCSV}
+                    class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                >
+                    Export to CSV
+                </button>
+                {#if hasExportedCSV}
                 <button
-                on:click={exportToCSV}
-                class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-            >
-                Export to CSV
-            </button>
+                    on:click={generatePayslip}
+                    class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isGeneratingPayslip}
+                >
+                    {#if isGeneratingPayslip}
+                        <span class="inline-block animate-spin mr-2">⌛</span>
+                    {/if}
+                    Generate Payslip
+                </button>
+            {/if}
+                </div>
                 <!-- <button
                 on:click={exportToCSV}
                 class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"

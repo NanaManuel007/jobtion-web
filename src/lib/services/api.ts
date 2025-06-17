@@ -54,6 +54,8 @@ export const API_CONFIG = {
         },
         REPORTS: {
             GENERAL: 'get-report',
+            GENERATEREPORT: 'fetch-report',
+            GENERATEPAYSLIP: 'store-payslip',
             USER: '/reports/users',
             CLIENT: '/reports/clients',
         },
