@@ -4,6 +4,7 @@
 
     import CircularProgress from '../../client_details/CircularProgress.svelte';
     import { candidateStore } from '$lib/services/candidate_services/candidate.store';
+	import { API_CONFIG } from '$lib/services/api';
     export let candidate: Candidate;
     let isVerifying = false;
     let verificationMessage = '';
@@ -56,7 +57,7 @@
 >
     <div class="flex items-center gap-6 mb-8">
         <div class="w-24 h-24 rounded-full overflow-hidden shadow-lg">
-            <img src={candidate.profilePicture !==null ?"https://node.jobtiondevs.com/"+candidate.profilePicture : '/user_images/default.jpg'} alt={`${candidate.firstName} ${candidate.lastName}`} class="w-full h-full object-cover">
+            <img src={candidate.profilePicture !==null ? API_CONFIG.IMAGE_URL +candidate.profilePicture : '/user_images/default.jpg'} alt={`${candidate.firstName} ${candidate.lastName}`} class="w-full h-full object-cover">
         </div>
         <div>
             <h3 class="text-3xl font-bold text-gray-800 mb-2">{candidate?.firstName} {candidate?.lastName !==null? candidate?.lastName : ""}</h3>

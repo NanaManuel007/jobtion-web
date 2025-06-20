@@ -19,7 +19,7 @@ export class TSMService {
                     'Accept': 'application/json'
                 },
                 mode: 'cors',
-                credentials: 'include'
+                // credentials: 'include'
             });
 
 
@@ -154,7 +154,7 @@ export class TSMService {
                     'Accept': 'application/json'
                 },
                 mode: 'cors',
-                credentials: 'include'
+                // credentials: 'include'
             });
 
             if (!response.ok) {
@@ -194,7 +194,7 @@ export class TSMService {
                 },
                 body: JSON.stringify(requestBody),
                 mode: 'cors',
-                credentials: 'include'
+                // credentials: 'include'
             });
 
             if (!response.ok) {
@@ -229,7 +229,7 @@ export class TSMService {
                 },
                 body: JSON.stringify(requestBody),
                 mode: 'cors',
-                credentials: 'include'
+                // credentials: 'include'
             });
             
             if (!response.ok) {

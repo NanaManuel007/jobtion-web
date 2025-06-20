@@ -9,6 +9,7 @@
     import { fade } from 'svelte/transition';
     import AddNewClient from './AddNewClient.svelte';
 	import { number } from 'zod';
+	import { API_CONFIG } from '$lib/services/api';
 
     // State declarations using $state
     let sortColumn = $state<keyof ClientsType | null>(null);
@@ -331,7 +332,7 @@ on:clientAdded={()=>showEditModal = false}
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
-                                            <img src={client.profile_picture !==null?"https://node.jobtiondevs.com/"+client.profile_picture : '/images/default.png'} 
+                                            <img src={client.profile_picture !==null? API_CONFIG.IMAGE_URL +client.profile_picture : '/images/default.png'} 
                                                  alt={client.company_name} 
                                                  class="w-full h-full object-cover">
                                         </div>

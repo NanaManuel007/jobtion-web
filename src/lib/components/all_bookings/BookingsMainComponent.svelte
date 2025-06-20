@@ -8,6 +8,7 @@
     import Toast from '../general_components/Toast.svelte';
     import { applicationStore } from '$lib/services/application_services/application.stores';
     import type { Application } from '$lib/services/application_services/application.types';
+	import { API_CONFIG } from '$lib/services/api';
 
     let mounted = $state(false);
     let searchTerm = $state('');
@@ -273,7 +274,7 @@
                                                 <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                                                     {#if application.profile_picture}
                                                         <img 
-                                                            src={application.profile_picture !==null ? "https://node.jobtiondevs.com/"+application.profile_picture : '/user_images/default.jpg'} 
+                                                            src={application.profile_picture !==null ? API_CONFIG.IMAGE_URL +application.profile_picture : '/user_images/default.jpg'} 
                                                             alt={`Profile picture of ${application.first_name} ${application.last_name}`}
                                                             class="w-full h-full object-cover"
                                                         >

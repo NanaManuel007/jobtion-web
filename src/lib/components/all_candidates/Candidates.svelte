@@ -11,6 +11,7 @@
     import type { BookJob } from '$lib/services/job_services/job.type';
 
     import Toast from '$lib/components/general_components/Toast.svelte';
+	import { API_CONFIG } from '$lib/services/api';
     let mounted = $state(false);
     let searchTerm = $state('');
     let currentPage = $state(1);
@@ -274,7 +275,7 @@ function handleBook(candidate: Candidate) {
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                                                 <!-- {#if candidate.profilePicture} -->
-                                                    <img src={candidate.profilePicture !==null ?"https://node.jobtiondevs.com/"+candidate.profilePicture : '/user_images/default.jpg'} alt={`${candidate.firstName} ${candidate.lastName}`} class="w-full h-full object-cover">
+                                                    <img src={candidate.profilePicture !==null ? API_CONFIG.IMAGE_URL+ candidate.profilePicture : '/user_images/default.jpg'} alt={`${candidate.firstName} ${candidate.lastName}`} class="w-full h-full object-cover">
                                                 <!-- {:else}
                                                     <span class="material-icons-sharp text-gray-400 w-full h-full flex items-center justify-center">person</span>
                                                 {/if} -->

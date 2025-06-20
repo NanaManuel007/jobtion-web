@@ -4,6 +4,7 @@
 	import type { AppliedCandidate, ClientsType, SelectedClientType } from '$lib/services/client_services/client.type';
 	import AddNewClient from '../all_clients/AddNewClient.svelte';
     import { jobs, jobActions } from '$lib/services/job_services/job.store';
+	import { API_CONFIG } from '$lib/services/api';
     let isUpdatingStatus= $state(false);
     let showEditModal = $state(false);
     // const {client} = $props<{client:ClientsType}>();
@@ -78,7 +79,7 @@ on:clientAdded={()=>showEditModal = false}
     <div class="flex items-center gap-6 mb-8">
         <div class="w-24 h-24 rounded-full overflow-hidden shadow-lg">
             <img 
-                src={'https://node.jobtiondevs.com/'+client_detail?.profile_picture} 
+                src={API_CONFIG.IMAGE_URL+client_detail?.profile_picture} 
                 alt={client?.profile_picture}
                 class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
             />
