@@ -3,7 +3,7 @@
 export const API_CONFIG = {
     // BASE_URL: 'https://node.jobtiondevs.com/api/jobtion/', 
     IMAGE_URL: 'https://minio-yk4gg88oow0k8kk8so4scwks.46.202.141.196.sslip.io/jobtion/', 
-    BASE_URL: 'http://eog84k80og08ok4000k8c84k.46.202.141.196.sslip.io/api/jobtion/', 
+    BASE_URL: 'https://jobtion.quinteduhosting.com/api/jobtion/', 
     // BASE_URL: 'https://5af6-2c0f-2a80-785-3008-a16c-b68e-b1eb-357d.ngrok-free.app/api/jobtion/', 
     ENDPOINTS: {
         AUTH: {
