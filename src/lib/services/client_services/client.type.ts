@@ -1,42 +1,73 @@
 export interface ClientsType {
-    id: number;
-    pronouns: string | null;
-    title: string | null;
-    company_name: string;
-    first_name: string;
-    last_name: string;
-    other_name: string | null;
-    company_job_title: string;
+    id: string;
+    pronouns: string;
+    title: string;
+    companyName: string;
+    ceoFirstName: string;
+    ceoLastName: string;
+    otherName: string;
+    companyJobTitle: string;
     email: string;
-    user_type: string;
-    email_verified_at: string | null;
-    phone_number: string;
+    userType: string;
+    phoneNumber: string;
     address: string;
-    crn: string | null;
-    urn: string | null;
-    dob: string | null;
-    gender: string | null;
-    about_me: string | null;
-    profile_picture: string | null;
-    identification: string | null;
-    proof_of_address: string | null;
-    national_identity: string | null;
-    company_house_number: string | null;
-    website: string | null;
-    lat: number | null;
-    postcode: string | null;
-    lng: number | null;
-    verified: number;
-    email_verified: number;
-    admin_verification: number;
-    password: string;
-    remember_token: string | null;
-    fcm_token: string | null;
-    total_jobs_posted: number;
+    aboutCompany: string;
+    profilePictureUrl: string;
+    companyHouseNumber: string;
+    website: string;
+    postcode: string;
+    latitude: number;
+    longitude: number;
+    isVerified: boolean;
+    isEmailVerified: boolean;
+    emailVerifiedAt: string;
+    adminVerification: boolean;
+    totalJobsPosted: number;
     achieved: number;
-    created_at: string;
-    updated_at: string;
-    linkedin: string | null;
+    currentCharges: number;
+    temporaryCharges: number;
+    temporaryChargesIsActive: boolean;
+    customFields: {
+        clientId: string;
+        dateTcField: string;
+        unqualifiedPartExperienced: number;
+        unqualifiedExperience: number;
+        childrenLevelTwo: number;
+        childrenLevelThree: number;
+        childrenLevelFourAndUp: number;
+        nurseryChef: number;
+        findersFeeStandard: number;
+        findersFeePermOneToFourWeeks: number;
+        findersFeePermFiveToEightWeeks: number;
+        findersFeePermEightToTwelveWeeks: number;
+        teachingAssistant: number;
+        senTeachingAssistant: number;
+        supplyTeacher: number;
+        qualifiedNurseryStaff: number;
+        longTermTeacher: number;
+        longTermStaff: number;
+        longTermTA: number;
+        longTermSenTA: number;
+        createdAt: string;
+        updatedAt: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ClientsResponse {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        clients: ClientsType[];
+        currentPage: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+    };
 }
 export interface ClientBooking {
     id: number;
@@ -96,13 +127,167 @@ export interface ClientListResponse {
 }
 export interface SelectedClientType {
     success: boolean;
-    message: string;
-    data: {
-        success: boolean;
-        client: ClientsType;
-        applied_candidates: AppliedCandidate[]; 
-        bookings: ClientBooking[];
-        
-    };
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: ClientsType;
+}
+
+export interface ClientStatisticsData {
+    totalJobs: number;
+    activeJobs: number;
+    totalApplications: number;
+    acceptedApplications: number;
+    totalJobsPosted: number;
+    achieved: number;
+    totalInternalApplications: number;
+    totalJobCompleted: number;
+}
+
+export interface ClientStatisticsResponse {
+    data: ClientStatisticsData;
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string | null;
+    timestamp: string;
+}
+
+
+// Client Charges Types
+export interface ClientChargesData {
+    clientId: string;
+    currentCharges: number;
+    temporaryCharges: number;
+    temporaryChargesIsActive: boolean;
+    lastUpdated: string;
+}
+
+export interface ClientChargesResponse {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string | null;
+    timestamp: string;
+    data: ClientChargesData;
+}
+
+export interface ClientChargesUpdateRequest {
+    currentCharges: number;
+    temporaryCharges: number;
+    temporaryChargesIsActive: boolean;
+}
+
+// Custom Fields Types
+export interface ClientCustomFieldsData {
+    clientId: string;
+    dateTcField: string;
+    unqualifiedPartExperienced: number;
+    unqualifiedExperience: number;
+    childrenLevelTwo: number;
+    childrenLevelThree: number;
+    childrenLevelFourAndUp: number;
+    nurseryChef: number;
+    findersFeeStandard: number;
+    findersFeePermOneToFourWeeks: number;
+    findersFeePermFiveToEightWeeks: number;
+    findersFeePermEightToTwelveWeeks: number;
+    teachingAssistant: number;
+    senTeachingAssistant: number;
+    supplyTeacher: number;
+    qualifiedNurseryStaff: number;
+    longTermTeacher: number;
+    longTermStaff: number;
+    longTermTA: number;
+    longTermSenTA: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ClientCustomFieldsResponse {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string | null;
+    timestamp: string;
+    data: ClientCustomFieldsData;
+}
+
+export interface ClientCustomFieldsUpdateRequest {
+    dateTcField: string;
+    unqualifiedPartExperienced: number;
+    unqualifiedExperience: number;
+    childrenLevelTwo: number;
+    childrenLevelThree: number;
+    childrenLevelFourAndUp: number;
+    nurseryChef: number;
+    findersFeeStandard: number;
+    findersFeePermOneToFourWeeks: number;
+    findersFeePermFiveToEightWeeks: number;
+    findersFeePermEightToTwelveWeeks: number;
+    teachingAssistant: number;
+    senTeachingAssistant: number;
+    supplyTeacher: number;
+    qualifiedNurseryStaff: number;
+    longTermTeacher: number;
+    longTermStaff: number;
+    longTermTA: number;
+    longTermSenTA: number;
+}
+
+// Client Contacts Types
+export interface ClientContact {
+    id: string;
+    clientId: string;
+    division: string;
+    forename: string;
+    surname: string;
+    jobTitle: string;
+    priority: string;
+    workTel: string;
+    mobileTel: string;
+    email: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ClientContactsData {
+    contacts: ClientContact[];
+    currentPage: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+}
+
+export interface ClientContactsResponse {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string | null;
+    timestamp: string;
+    data: ClientContactsData;
+}
+
+export interface ClientContactCreateRequest {
+    division: string;
+    forename: string;
+    surname: string;
+    jobTitle: string;
+    priority: string;
+    workTel: string;
+    mobileTel: string;
+    email: string;
+}
+
+export interface ClientContactUpdateRequest {
+    division: string;
+    forename: string;
+    surname: string;
+    jobTitle: string;
+    priority: string;
+    workTel: string;
+    mobileTel: string;
+    email: string;
 }
 

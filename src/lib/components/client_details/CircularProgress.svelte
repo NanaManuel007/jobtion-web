@@ -46,7 +46,7 @@
         </svg>
         <div class="absolute inset-0 flex flex-col items-center justify-center">
             <span class="text-4xl font-bold">{value}</span>
-            <span class="text-base text-gray-500 mt-2">{label}</span>
+            <span class=" text-gray-500 mt-2 text-sm">{label}</span>
         </div>
     </div>
 </div>

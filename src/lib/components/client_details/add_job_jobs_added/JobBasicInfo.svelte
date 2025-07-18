@@ -151,3 +151,45 @@
         {/if}
     </div>
 </div>
+
+<!-- <div class=" flex flex-row gap-1">
+    <div class="space-y-1">
+        <InputField
+            label={paymentLabel}
+            type="number"
+            step="0.01"
+            icon="attach_money"
+            bind:value={jobData.amount}
+            placeholder={paymentPlaceholder}
+        />
+        {#if errors.amount}
+            <p class="text-red-500 text-sm">{errors.amount}</p>
+        {/if}
+    </div>
+    <div class="space-y-1">
+        <InputField
+            label={"Payment From"}
+            type="number"
+            step="0.01"
+            icon="attach_money"
+            bind:value={jobData.from_amount}
+            placeholder={"Amount From"}
+        />
+        {#if errors.amount}
+            <p class="text-red-500 text-sm">{errors.from_amount}</p>
+        {/if}
+    </div>
+    <div class="space-y-1">
+        <InputField
+            label={"Payment to"}
+            type="number"
+            step="0.01"
+            icon="attach_money"
+            bind:value={jobData.to_amount}
+            placeholder={paymentPlaceholder}
+        />
+        {#if errors.amount}
+            <p class="text-red-500 text-sm">{errors.to_amount}</p>
+        {/if}
+    </div>
+</div> -->

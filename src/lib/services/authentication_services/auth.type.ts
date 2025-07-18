@@ -1,25 +1,29 @@
 
 export interface AdminDetails {
-    id: number;
-    username: string;
-    full_name: string;
+    id: string;
     email: string;
-    role_id: number;
-}
-
-export interface AccessRole {
-    id: number;
-    role_name: string;
-    role_description: string;
-    access: string[];
+    username: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    isSuperAdmin: boolean;
+    twoFactorEnabled: boolean;
+    createdAt: string;
+    lastLoginAt: string;
+    roles: string[];
+    permissions: string[];
 }
 
 export interface AdminLoginResponse {
     success: boolean;
-    message: string;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
     data: {
-        admin_details: AdminDetails;
-        access: AccessRole;
-        access_token: string;
+        accessToken: string;
+        refreshToken: string;
+        expiresAt: string;
+        admin: AdminDetails;
     }
 }

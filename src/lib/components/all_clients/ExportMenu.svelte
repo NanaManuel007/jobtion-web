@@ -1,7 +1,7 @@
 <script lang="ts">
-    // import type { Customer } from '$lib/stores/allClientsStore/allUsers.type';
+    import type { ClientsType } from '$lib/services/client_services/client.type';
     
-    export let customers: ClientTypes[];
+    export let customers: ClientsType[];
     
     function exportToPDF() {
         console.log('Exporting to PDF...');
@@ -13,9 +13,9 @@
     }
 
     function exportToCSV() {
-        const headers = ['id', 'name', 'location', 'orderDate', 'status', 'amount'];
+        const headers = ['id', 'companyName', 'address', 'createdAt', 'adminVerification', 'totalJobsPosted'];
         const csvData = customers.map(customer => 
-            headers.map(header => customer[header as keyof ClientTypes]).join(',')
+            headers.map(header => customer[header as keyof ClientsType]).join(',')
         );
         const csv = [headers.join(','), ...csvData].join('\n');
         downloadFile(csv, 'customers.csv', 'text/csv');

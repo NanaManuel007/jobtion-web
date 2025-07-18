@@ -7,15 +7,15 @@
     function handleViewMore() {
         goto('/private/app_approval');
     }
-    let adminDetails: any = null;
-    let accessRole: any = null;
+    let adminDetails = $state<any>(null);
+    let roles = $state<string[]>([]);
     let incomingApprovals = $state<any[]>([]);
     let loading = $state(true);
     
     onMount(async () => {
         try {
             adminDetails = AuthService.getAdminDetails();
-            accessRole = AuthService.getAccessRole();
+            roles = AuthService.getRoles() || [];
             await tsmActions.fetchAllTSMs();
             incomingApprovals = $tsms
                 .filter((tsm: any) => tsm.break_time_updated === 1 || tsm.break_time_updated===0)
@@ -45,10 +45,10 @@
             </span>
         </div>
 
-        <div class="flex gap-8 text-right">
+          <div class="flex gap-8 text-right">
             <div class="info">
-                <p>Hey, <b>{adminDetails?.full_name || 'Admin'}</b></p>
-                <small class="text-muted">{accessRole?.role_name || 'Admin'}</small>
+                <p>Hey, <b>{adminDetails ? `${adminDetails.firstName} ${adminDetails.lastName}` : 'Admin'}</b></p>
+                <small class="text-muted">{roles && roles.length > 0 ? roles[0] : 'Admin'}</small>
             </div>
             <div class="w-11 h-11 rounded-full overflow-hidden">
                 <img src={'/images/icon.png'} alt="Profile">

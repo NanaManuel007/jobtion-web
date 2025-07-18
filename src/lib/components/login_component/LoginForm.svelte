@@ -4,10 +4,10 @@
   import Toast from './Toast.svelte';
   import { AuthService } from '$lib/services/authentication_services/auth.services';
   
-  // export let isActive: boolean;
-    const { isActive = '' } = $props<{ isActive?: boolean }>();
+  const { isActive = '' } = $props<{ isActive?: boolean }>();
   let email = $state('');
   let password = $state('');
+  let twoFactorCode = $state('');
   let showToast = $state(false);
   let toastMessage = $state('');
   let isLoading = $state(false);
@@ -22,7 +22,13 @@
 
     try {
       isLoading = true;
-      const result = await AuthService.login({ email, password });
+      const credentials = {
+        usernameOrEmail: email,
+        password: password,
+        ...(twoFactorCode && { twoFactorCode: twoFactorCode })
+      };
+      
+      const result = await AuthService.login(credentials);
 
       if (result.success) {
         goto('/private/home');
@@ -56,6 +62,13 @@
       type="password" 
       placeholder="Password" 
       bind:value={password}
+      class="bg-[#eee] border-none my-2 px-4 py-2 text-sm rounded-lg w-full outline-none"
+      disabled={isLoading}
+    >
+    <input 
+      type="text" 
+      placeholder="2FA Code (optional)" 
+      bind:value={twoFactorCode}
       class="bg-[#eee] border-none my-2 px-4 py-2 text-sm rounded-lg w-full outline-none"
       disabled={isLoading}
     >

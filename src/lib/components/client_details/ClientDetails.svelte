@@ -15,7 +15,7 @@
     let fetchError = false;
 
     // Get client ID from URL params and ensure it's a number
-    $: clientId = parseInt($page.params.id) || 0;
+    $: clientId = $page.params.id || '';
     
     async function fetchClient() {
         try {

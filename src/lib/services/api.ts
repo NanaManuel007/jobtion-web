@@ -2,12 +2,12 @@
 
 export const API_CONFIG = {
     // BASE_URL: 'https://node.jobtiondevs.com/api/jobtion/', 
-    IMAGE_URL: 'https://minio-yk4gg88oow0k8kk8so4scwks.46.202.141.196.sslip.io/jobtion/', 
-    BASE_URL: 'https://jobtion.quinteduhosting.com/api/jobtion/', 
+    IMAGE_URL: 'https://minio-kogckgccwg40sgkksc4k4o4w.46.202.141.196.sslip.io/jobtion/', 
+    BASE_URL: 'http://localhost:8080/api/', 
     // BASE_URL: 'https://5af6-2c0f-2a80-785-3008-a16c-b68e-b1eb-357d.ngrok-free.app/api/jobtion/', 
     ENDPOINTS: {
         AUTH: {
-            LOGIN: 'authenticate',
+            LOGIN: 'admin/auth/login',
             CREATEADMIN: 'create-admin',
             EDITADMIN: 'update-admin',
             ALLADMINS: 'get-all-admins',
@@ -23,12 +23,12 @@ export const API_CONFIG = {
             GETROLES: 'fetch-roles',
         },
         COMPANIES: {
-            LIST: 'get-all-client',
-            CREATE: 'add-new-client',
+            LIST: 'Client',
+            CREATE: 'Client/register',
             UPDATE: 'update-new-client',
             DELETE: 'delete-job',
             UNARCHIVE: 'fetch',
-            DETAILS: 'fetch-single-client',
+            DETAILS: 'Client',
         },
         JOBS: {
             CREATE: 'post-job',
@@ -47,6 +47,12 @@ export const API_CONFIG = {
             DECLINEAPPLICATION: 'decline',
             SETINTVERVIEW: 'set-interview',
 
+        },
+        INTERNALJOBS:{
+            CREATE:'internal-jobs/Clients',
+            LIST: 'internal-jobs/Clients',
+            ALLINTERNALJOBS: 'internal-jobs',
+            JOBMANIPULATIONS: 'internal-jobs',
         },
         
         CANDIDATES: {

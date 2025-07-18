@@ -28,6 +28,8 @@ export type JobBase = {
     payment_type: string;
     location: string;
     amount: number;
+    // from_amount: number;
+    // to_amount: number;
     employment_type: string;
     job_location: string;
     hours: number;
@@ -98,6 +100,8 @@ export type JobResponse = {
     job_title: string;
     payment_type: string;
     amount: number;
+    // from_amount: number;
+    // to_amount: number;
     job_type: JobType;
     employment_type: PermanentEmploymentType;
     job_location: string;
