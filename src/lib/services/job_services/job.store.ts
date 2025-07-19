@@ -1,11 +1,20 @@
 import { writable } from 'svelte/store';
 import { JobService } from './job.services';
-import type { BookJob, JobData, JobResponse } from './job.type';
+import type { BookJob, JobData, JobResponse, PermanentJobAPI, PermanentJobCreateRequest } from './job.type';
 
 export const jobs = writable<JobResponse[]>([]);
 export const isJobsLoading = writable(false);
 export const bookingError = writable<string | null>(null);
 
+// Add permanent jobs stores
+export const permanentJobs = writable<PermanentJobAPI[]>([]);
+export const isPermanentJobsLoading = writable(false);
+export const permanentJobsPagination = writable({
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0
+});
 
 export const jobActions = {
     // async getAllJobs() {
@@ -47,14 +56,14 @@ export const jobActions = {
     
 
 
-    async addJob(job: JobData) {
-        await JobService.createJob(job);
-        await jobActions.getAllJobs(job.company_id);
+    async addJob(job: JobData, clientId: string) {
+        await JobService.createJob(job, clientId);
+        await jobActions.getPermanentJobs(1, 10, clientId);
     },
 
-    async updateJob(jobId: number, job: JobData) {
-        await JobService.updateJob(jobId, job);
-        await jobActions.getAllJobs(job.company_id);
+    async updateJob(jobId: number, job: JobData, clientId: string) {
+        await JobService.updateJob(jobId, job, clientId);
+        await jobActions.getPermanentJobs(1, 10, clientId);
     },
     async createBooking(booking: BookJob) {
         console.log(booking);
@@ -87,7 +96,54 @@ export const jobActions = {
         } finally {
             isJobsLoading.set(false);
         }
-    }
+    },
 
-    //interview store 
+
+    
+    // Add permanent job actions following your pattern
+    async getPermanentJobs(page: number = 1, pageSize: number = 10, clientId?: string, search?: string) {
+        isPermanentJobsLoading.set(true);
+        try {
+            const response = await JobService.getPermanentJobs(page, pageSize, clientId, search);
+            if (response && response.success) {
+                permanentJobs.set(response.data.jobs);
+                permanentJobsPagination.set({
+                    currentPage: response.data.currentPage,
+                    pageSize: response.data.pageSize,
+                    totalCount: response.data.totalCount,
+                    totalPages: response.data.totalPages
+                });
+            }
+        } catch (error) {
+            console.error('Failed to refresh permanent jobs:', error);
+            permanentJobs.set([]);
+        } finally {
+            isPermanentJobsLoading.set(false);
+        }
+    },
+
+    async addPermanentJob(job: PermanentJobCreateRequest) {
+        await JobService.createPermanentJob(job);
+        await jobActions.getPermanentJobs(1, 10, job.clientId);
+    },
+
+    // async updatePermanentJob(jobId: string, job: PermanentJobCreateRequest) {
+    //     await JobService.updatePermanentJob(jobId, job);
+    //     await jobActions.getPermanentJobs(1, 10, job.clientId);
+    // },
+
+    // async publishPermanentJob(jobId: string, publishStatus: boolean) {
+    //     isPermanentJobsLoading.set(true);
+    //     try {
+    //         await JobService.publishPermanentJob({ id: jobId, isPublished: publishStatus });
+    //         // Refresh the permanent jobs list to reflect the updated status
+    //         await jobActions.getPermanentJobs();
+    //         return { success: true };
+    //     } catch (error) {
+    //         console.error('Failed to publish permanent job:', error);
+    //         return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    //     } finally {
+    //         isPermanentJobsLoading.set(false);
+    //     }
+    // }
 };

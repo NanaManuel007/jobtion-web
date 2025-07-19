@@ -29,10 +29,12 @@ export const API_CONFIG = {
             DELETE: 'delete-job',
             UNARCHIVE: 'fetch',
             DETAILS: 'Client',
+            CONTACTS: 'clients',
         },
         JOBS: {
-            CREATE: 'post-job',
-            UPDATE: 'update-job',
+            CREATE: 'Job',
+            PERMANENT: 'Job/my-jobs',
+            UPDATE: 'Job',
             ALLPERMANENTJOBS: 'get-all-permanent-jobs',
             ALLTEMPORARYJOBS: 'get-all-temporary-jobs',
             DELETE: 'delete-job',
@@ -46,7 +48,6 @@ export const API_CONFIG = {
             APPROVEAPPLICATION: 'accept',
             DECLINEAPPLICATION: 'decline',
             SETINTVERVIEW: 'set-interview',
-
         },
         INTERNALJOBS:{
             CREATE:'internal-jobs/Clients',

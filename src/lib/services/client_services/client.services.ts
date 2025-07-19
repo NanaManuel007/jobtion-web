@@ -421,7 +421,7 @@ export class ClientService {
                 return null;
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.DETAILS)}/${clientId}/contacts`, {
+            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.CONTACTS)}/${clientId}/contacts`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -449,7 +449,7 @@ export class ClientService {
                 return { success: false, message: 'No access token found' };
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.DETAILS)}/${clientId}/contacts`, {
+            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.CONTACTS)}/${clientId}/contacts`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -488,7 +488,7 @@ export class ClientService {
                 return { success: false, message: 'No access token found' };
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.DETAILS)}/${clientId}/contacts/${contactId}`, {
+            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.CONTACTS)}/${clientId}/contacts/${contactId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -527,7 +527,7 @@ export class ClientService {
                 return { success: false, message: 'No access token found' };
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.DETAILS)}/${clientId}/contacts/${contactId}`, {
+            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.CONTACTS)}/${clientId}/contacts/${contactId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

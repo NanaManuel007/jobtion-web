@@ -57,7 +57,7 @@ export type JobTemporary = JobBase & {
     days_sessions: DaySession[];
 };
 
-export type JobData = JobPermanent | JobTemporary;
+// export type JobData = JobPermanent | JobTemporary;
 
 export type TemporaryType = 'Per Hour' | 'Per Day' | 'Per Week';
 export type PermanentType = 'Per Month' | 'Per Annum' | 'Per Term';
@@ -95,45 +95,173 @@ export const weekDays: Array<{ id: DayId; label: string }> = [
 ];
 
 // all jobs 
-export type JobResponse = {
-    id: number;
-    job_title: string;
-    payment_type: string;
-    amount: number;
-    // from_amount: number;
-    // to_amount: number;
-    job_type: JobType;
-    employment_type: PermanentEmploymentType;
-    job_location: string;
-    hours: number;
-    duty_1: string;
-    duty_2: string | null;
-    duty_3: string | null;
-    duty_4: string | null;
-    requirment_1: string;
-    requirment_2: string | null;
-    requirment_3: string | null;
-    requirment_4: string | null;
-    company_id: number;
-    posted_start_date: string;
-    posted_roles: number;
-    publish: number;
-    position: string | null;
-    job_desc: string | null;
-    job_requirement: string | null;
-    time_of_posting_job: string;
-    day_session?: Record<string, {
-        day: string;
-        break_time: string;
-        start_at: string;
-        start_end: string;
-    }> | null;
-    applications: JobApplication[];
-    created_at: string;
-    updated_at: string;
-};
+// export type JobResponse = {
+//     id: number;
+//     job_title: string;
+//     payment_type: string;
+//     amount: number;
+//     // from_amount: number;
+//     // to_amount: number;
+//     job_type: JobType;
+//     employment_type: PermanentEmploymentType;
+//     job_location: string;
+//     hours: number;
+//     duty_1: string;
+//     duty_2: string | null;
+//     duty_3: string | null;
+//     duty_4: string | null;
+//     requirment_1: string;
+//     requirment_2: string | null;
+//     requirment_3: string | null;
+//     requirment_4: string | null;
+//     company_id: number;
+//     posted_start_date: string;
+//     posted_roles: number;
+//     publish: number;
+//     position: string | null;
+//     job_desc: string | null;
+//     job_requirement: string | null;
+//     time_of_posting_job: string;
+//     day_session?: Record<string, {
+//         day: string;
+//         break_time: string;
+//         start_at: string;
+//         start_end: string;
+//     }> | null;
+//     applications: JobApplication[];
+//     created_at: string;
+//     updated_at: string;
+// };
 
 export type BookJob = {
     jobId:number,
     candidateId:number
 }
+
+// New API Response Types for Permanent Jobs
+export type PermanentJobAPI = {
+    id: string;
+    jobTitle: string;
+    paymentType: string;
+    amount: number;
+    jobType: string;
+    employmentType: string;
+    jobLocation: string;
+    hours: number;
+    duty1: string;
+    duty2: string;
+    duty3: string;
+    duty4: string;
+    requirement1: string;
+    requirement2: string;
+    requirement3: string;
+    requirement4: string;
+    position: string;
+    jobDescription: string;
+    jobRequirement: string;
+    clientId: string;
+    companyName: string;
+    postedStartDate: string;
+    postedRoles: number;
+    isPublished: boolean;
+    timeOfPostingJob: string;
+    applicationCount: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type PermanentJobsResponse = {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        jobs: PermanentJobAPI[];
+        currentPage: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+    };
+};
+
+// Create Job Request for new API
+export type PermanentJobCreateRequest = {
+    jobTitle: string;
+    paymentType: string;
+    amount: number;
+    jobType: 'Permanent';
+    employmentType: string;
+    jobLocation: string;
+    hours: number;
+    duty1: string;
+    duty2?: string;
+    duty3?: string;
+    duty4?: string;
+    requirement1: string;
+    requirement2?: string;
+    requirement3?: string;
+    requirement4?: string;
+    position?: string;
+    jobDescription?: string;
+    jobRequirement?: string;
+    clientId: string;
+    postedStartDate: string;
+    postedRoles: number;
+    isPublished: boolean;
+};
+
+export type JobData = {
+    jobTitle: string;
+    clientId: string;
+    paymentType: string;
+    amount: number;
+    jobType: string;
+    employmentType: string;
+    jobLocation: string;
+    hours: number;
+    duty1: string;
+    duty2: string;
+    duty3: string;
+    duty4: string;
+    requirement1: string;
+    requirement2: string;
+    requirement3: string;
+    requirement4: string;
+    position: string;
+    jobDescription: string;
+    jobRequirement: string;
+    postedStartDate: string;
+    postedRoles: number;
+    isPublished: boolean;
+};
+
+export type JobResponse = {
+    id: number;
+    jobTitle: string;
+    clientId: string;
+    paymentType: string;
+    amount: number;
+    jobType: string;
+    employmentType: string;
+    jobLocation: string;
+    hours: number;
+    duty1: string;
+    duty2: string | null;
+    duty3: string | null;
+    duty4: string | null;
+    requirement1: string;
+    requirement2: string | null;
+    requirement3: string | null;
+    requirement4: string | null;
+    position: string | null;
+    jobDescription: string | null;
+    jobRequirement: string | null;
+    postedStartDate: string;
+    postedRoles: number;
+    isPublished: boolean;
+    timeOfPostingJob: string;
+    applications: JobApplication[];
+    createdAt: string;
+    updatedAt: string;
+};

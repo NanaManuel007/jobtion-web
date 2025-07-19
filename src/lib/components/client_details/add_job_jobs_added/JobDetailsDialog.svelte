@@ -1,9 +1,9 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
-    import type { JobResponse } from '$lib/services/job_services/job.type';
+    import type { PermanentJobAPI } from '$lib/services/job_services/job.type';
 
     export let showDialog = false;
-    export let job: JobResponse | null = null;
+    export let job: PermanentJobAPI | null = null;
     export let onClose = () => {};
 
     let selectedTab: 'jobDetails' | 'applicants' = 'jobDetails';
@@ -47,7 +47,7 @@
         >
             <!-- Header -->
             <div class="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                <h2 class="text-xl font-bold text-gray-800">Job Details: {job.job_title}</h2>
+                <h2 class="text-xl font-bold text-gray-800">Job Details: {job.jobTitle}</h2>
                 <button 
                     class="p-2 rounded-full hover:bg-gray-100 transition-colors"
                     on:click={onClose}
@@ -84,50 +84,45 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <p class="text-sm text-gray-500">Job Title</p>
-                                    <p class="font-medium text-gray-800">{job.job_title}</p>
+                                    <p class="font-medium text-gray-800">{job.jobTitle}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Location</p>
-                                    <p class="font-medium text-gray-800">{job.job_location || 'Not specified'}</p>
+                                    <p class="font-medium text-gray-800">{job.jobLocation || 'Not specified'}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Job Type</p>
-                                    <p class="font-medium text-gray-800">{job.job_type}</p>
+                                    <p class="font-medium text-gray-800">{job.jobType}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Employment Type</p>
-                                    <p class="font-medium text-gray-800">{job.employment_type || 'Not specified'}</p>
+                                    <p class="font-medium text-gray-800">{job.employmentType || 'Not specified'}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Status</p>
                                     <span class="px-3 py-1 rounded-full text-sm font-medium inline-block
-                                        {job.publish === 1 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
-                                        {job.publish === 1 ? 'Active' : 'Inactive'}
+                                        {job.isPublished === true ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
+                                        {job.isPublished === true ? 'Active' : 'Inactive'}
                                     </span>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Posted Date</p>
-                                    <p class="font-medium text-gray-800">{formatDate(job.posted_start_date)}</p>
+                                    <p class="font-medium text-gray-800">{formatDate(job.timeOfPostingJob)}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Available Roles</p>
-                                    <p class="font-medium text-gray-800">{job.posted_roles || 0}</p>
+                                    <p class="font-medium text-gray-800">{job.postedRoles || 0}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Payment</p>
                                     <p class="font-medium text-gray-800">
-                                        {job.payment_type}: {formatCurrency(job.amount || 0)}
-                                        {#if job.job_type === 'Temporary'}
-                                            per hour
-                                        {/if}
+                                        {job.paymentType}: {formatCurrency(job.amount || 0)}
                                     </p>
                                 </div>
-                                {#if job.job_type === 'Temporary'}
-                                    <div>
-                                        <p class="text-sm text-gray-500">Hours</p>
-                                        <p class="font-medium text-gray-800">{job.hours || 'Not specified'}</p>
-                                    </div>
-                                {/if}
+                                <div>
+                                    <p class="text-sm text-gray-500">Hours</p>
+                                    <p class="font-medium text-gray-800">{job.hours || 'Not specified'}</p>
+                                </div>
                             </div>
                         </div>
 
@@ -135,19 +130,19 @@
                         <div class="bg-gray-50 p-6 rounded-xl">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Job Duties</h3>
                             <ul class="list-disc pl-5 space-y-2">
-                                {#if job.duty_1}
-                                    <li class="text-gray-700">{job.duty_1}</li>
+                                {#if job.duty1}
+                                    <li class="text-gray-700">{job.duty1}</li>
                                 {/if}
-                                {#if job.duty_2}
-                                    <li class="text-gray-700">{job.duty_2}</li>
+                                {#if job.duty2}
+                                    <li class="text-gray-700">{job.duty2}</li>
                                 {/if}
-                                {#if job.duty_3}
-                                    <li class="text-gray-700">{job.duty_3}</li>
+                                {#if job.duty3}
+                                    <li class="text-gray-700">{job.duty3}</li>
                                 {/if}
-                                {#if job.duty_4}
-                                    <li class="text-gray-700">{job.duty_4}</li>
+                                {#if job.duty4}
+                                    <li class="text-gray-700">{job.duty4}</li>
                                 {/if}
-                                {#if !job.duty_1 && !job.duty_2 && !job.duty_3 && !job.duty_4}
+                                {#if !job.duty1 && !job.duty2 && !job.duty3 && !job.duty4}
                                     <li class="text-gray-500 italic">No duties specified</li>
                                 {/if}
                             </ul>
@@ -157,19 +152,19 @@
                         <div class="bg-gray-50 p-6 rounded-xl">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Job Requirements</h3>
                             <ul class="list-disc pl-5 space-y-2">
-                                {#if job.requirment_1}
-                                    <li class="text-gray-700">{job.requirment_1}</li>
+                                {#if job.requirement1}
+                                    <li class="text-gray-700">{job.requirement1}</li>
                                 {/if}
-                                {#if job.requirment_2}
-                                    <li class="text-gray-700">{job.requirment_2}</li>
+                                {#if job.requirement2}
+                                    <li class="text-gray-700">{job.requirement2}</li>
                                 {/if}
-                                {#if job.requirment_3}
-                                    <li class="text-gray-700">{job.requirment_3}</li>
+                                {#if job.requirement3}
+                                    <li class="text-gray-700">{job.requirement3}</li>
                                 {/if}
-                                {#if job.requirment_4}
-                                    <li class="text-gray-700">{job.requirment_4}</li>
+                                {#if job.requirement4}
+                                    <li class="text-gray-700">{job.requirement4}</li>
                                 {/if}
-                                {#if !job.requirment_1 && !job.requirment_2 && !job.requirment_3 && !job.requirment_4}
+                                {#if !job.requirement1 && !job.requirement2 && !job.requirement3 && !job.requirement4}
                                     <li class="text-gray-500 italic">No requirements specified</li>
                                 {/if}
                             </ul>

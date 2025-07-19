@@ -36,45 +36,57 @@
 <div class="space-y-4">
     <h3 class="text-lg font-semibold text-gray-900">Job Duties</h3>
     <div class="space-y-4">
-        <TextAreaField
-            label="Duty 1"
-            placeholder="Enter primary job duty"
-            icon="assignment"
-            required={true}
-            bind:value={jobData.duty_1}
-        />
-        {#if errors.duty_1}
-            <p class="text-red-500 text-sm">{errors.duty_1}</p>
-        {/if}
+        <div class="space-y-1">
+            <TextAreaField
+                label="Duty 1"
+                placeholder="Enter primary job duty"
+                icon="assignment"
+                required={true}
+                bind:value={jobData.duty1}
+                rows={2}
+            />
+            {#if errors.duty1}
+                <p class="text-red-500 text-sm">{errors.duty1}</p>
+            {/if}
+        </div>
 
-        <TextAreaField
-            label="Duty 2"
-            placeholder="Enter additional job duty (optional)"
-            icon="assignment"
-            bind:value={jobData.duty_2}
-        />
-        {#if errors.duty_2}
-            <p class="text-red-500 text-sm">{errors.duty_2}</p>
-        {/if}
+        <div class="space-y-1">
+            <TextAreaField
+                label="Duty 2"
+                placeholder="Enter additional job duty (optional)"
+                icon="assignment"
+                bind:value={jobData.duty2}
+                rows={2}
+            />
+            {#if errors.duty2}
+                <p class="text-red-500 text-sm">{errors.duty2}</p>
+            {/if}
+        </div>
 
-        <TextAreaField
-            label="Duty 3"
-            placeholder="Enter additional job duty (optional)"
-            icon="assignment"
-            bind:value={jobData.duty_3}
-        />
-        {#if errors.duty_3}
-            <p class="text-red-500 text-sm">{errors.duty_3}</p>
-        {/if}
+        <div class="space-y-1">
+            <TextAreaField
+                label="Duty 3"
+                placeholder="Enter additional job duty (optional)"
+                icon="assignment"
+                bind:value={jobData.duty3}
+                rows={2}
+            />
+            {#if errors.duty3}
+                <p class="text-red-500 text-sm">{errors.duty3}</p>
+            {/if}
+        </div>
 
-        <TextAreaField
-            label="Duty 4"
-            placeholder="Enter additional job duty (optional)"
-            icon="assignment"
-            bind:value={jobData.duty_4}
-        />
-        {#if errors.duty_4}
-            <p class="text-red-500 text-sm">{errors.duty_4}</p>
-        {/if}
+        <div class="space-y-1">
+            <TextAreaField
+                label="Duty 4"
+                placeholder="Enter additional job duty (optional)"
+                icon="assignment"
+                bind:value={jobData.duty4}
+                rows={2}
+            />
+            {#if errors.duty4}
+                <p class="text-red-500 text-sm">{errors.duty4}</p>
+            {/if}
+        </div>
     </div>
 </div>

@@ -3,31 +3,16 @@
     import { JobService } from '$lib/services/job_services/job.services';
     import { fade } from 'svelte/transition';
     import { createEventDispatcher } from 'svelte';
-    import { jobSchema } from '$lib/services/job_services/job.validation';
-    import { type JobData, type DaySession, jobTypes } from '$lib/services/job_services/job.type';
+    import { type JobData } from '$lib/services/job_services/job.type';
     import JobBasicInfo from './JobBasicInfo.svelte';
-    import WorkingHours from './WorkingHours.svelte';
     import JobDuties from '$lib/components/client_details/add_job_jobs_added/JobDuties.svelte';
     import JobRequirements from '$lib/components/client_details/add_job_jobs_added/JobRequirements.svelte';
     import JobDetails from '$lib/components/client_details/add_job_jobs_added/JobDetails.svelte';
-    import { z } from 'zod';
     import Toast from '$lib/components/general_components/Toast.svelte';
-
-    type UIJobData = JobData & {
-        workingHours: {
-            sunday: DaySession;
-            monday: DaySession;
-            tuesday: DaySession;
-            wednesday: DaySession;
-            thursday: DaySession;
-            friday: DaySession;
-            saturday: DaySession;
-        };
-    };
 
     const dispatch = createEventDispatcher();
     const { clientId, showDialog = $bindable(false), isEditMode = $bindable(false), jobToEdit = $bindable(null) } = $props<{
-        clientId: number,
+        clientId: string,
         showDialog?: boolean,
         isEditMode?: boolean,
         jobToEdit?: any
@@ -39,79 +24,57 @@
     let isLoading = $state(false);
     let errors = $state<{ [key: string]: string }>({});
 
-    let jobData = $state<UIJobData>({
-        job_title: '',
-        payment_type: '',
+    let jobData = $state<JobData>({
+        jobTitle: '',
+        clientId: clientId.toString(),
+        paymentType: '',
         amount: 0,
-        // from_amount: 0,
-        // to_amount: 0,
-        job_type: 'Permanent',
-        employment_type: '',
-        job_location: '',
+        jobType: 'Permanent',
+        employmentType: '',
+        jobLocation: '',
         hours: 0,
-        duty_1: '',
-        duty_2: '',
-        duty_3: '',
-        duty_4: '',
-        requirment_1: '',
-        requirment_2: '',
-        requirment_3: '',
-        requirment_4: '',
-        company_id: clientId,
-        posted_start_date: '',
-        posted_roles: 0,
-        publish: 0,
-        location:'',
-        roles:0,
-        workingHours: {
-            sunday: { day: 'sunday', start_at: '', start_end: '' },
-            monday: { day: 'monday', start_at: '', start_end: '' },
-            tuesday: { day: 'tuesday', start_at: '', start_end: '' },
-            wednesday: { day: 'wednesday', start_at: '', start_end: '' },
-            thursday: { day: 'thursday', start_at: '', start_end: '' },
-            friday: { day: 'friday', start_at: '', start_end: '' },
-            saturday: { day: 'saturday', start_at: '', start_end: '' }
-        }
+        duty1: '',
+        duty2: '',
+        duty3: '',
+        duty4: '',
+        requirement1: '',
+        requirement2: '',
+        requirement3: '',
+        requirement4: '',
+        position: '',
+        jobDescription: '',
+        jobRequirement: '',
+        postedStartDate: new Date().toISOString(),
+        postedRoles: 0,
+        isPublished: false
     });
-
-    // let showWorkingHours = $derived(jobData.job_type === 'Temporary');
 
     // Reset form when dialog closes
     $effect(() => {
         if (!showDialog) {
             jobData = {
-                job_title: '',
-                payment_type: '',
+                jobTitle: '',
+                clientId: clientId.toString(),
+                paymentType: '',
                 amount: 0,
-                // from_amount: 0,
-                // to_amount: 0,
-                job_type: 'Permanent',
-                employment_type: '',
-                job_location: '',
+                jobType: 'Permanent',
+                employmentType: '',
+                jobLocation: '',
                 hours: 0,
-                duty_1: '',
-                duty_2: '',
-                duty_3: '',
-                duty_4: '',
-                requirment_1: '',
-                requirment_2: '',
-                requirment_3: '',
-                requirment_4: '',
-                company_id: clientId,
-                posted_start_date: '',
-                posted_roles: 0,
-                roles:0,
-                location:'',
-                publish: 0,
-                workingHours: {
-            sunday: { day: 'sunday', start_at: '', start_end: '' },
-            monday: { day: 'monday', start_at: '', start_end: '' },
-            tuesday: { day: 'tuesday', start_at: '', start_end: '' },
-            wednesday: { day: 'wednesday', start_at: '', start_end: '' },
-            thursday: { day: 'thursday', start_at: '', start_end: '' },
-            friday: { day: 'friday', start_at: '', start_end: '' },
-            saturday: { day: 'saturday', start_at: '', start_end: '' }
-        }
+                duty1: '',
+                duty2: '',
+                duty3: '',
+                duty4: '',
+                requirement1: '',
+                requirement2: '',
+                requirement3: '',
+                requirement4: '',
+                position: '',
+                jobDescription: '',
+                jobRequirement: '',
+                postedStartDate: new Date().toISOString(),
+                postedRoles: 0,
+                isPublished: false
             };
             errors = {};
         }
@@ -119,166 +82,114 @@
 
     // Initialize edit mode
     $effect(() => {
-    if (isEditMode && jobToEdit) {
-        // Convert day_session to workingHours format
-        const workingHours = {
-            sunday: { day: 'sunday', start_at: '', start_end: '' },
-            monday: { day: 'monday', start_at: '', start_end: '' },
-            tuesday: { day: 'tuesday', start_at: '', start_end: '' },
-            wednesday: { day: 'wednesday', start_at: '', start_end: '' },
-            thursday: { day: 'thursday', start_at: '', start_end: '' },
-            friday: { day: 'friday', start_at: '', start_end: '' },
-            saturday: { day: 'saturday', start_at: '', start_end: '' }
-        };
-
-        if (jobToEdit.day_session) {
-            Object.entries(jobToEdit.day_session).forEach((entry) => {
-                const [key, value] = entry as [string, { start_at: string; start_end: string }];
-                if (key in workingHours) {
-                    workingHours[key as keyof typeof workingHours] = {
-                        day: key,
-                        start_at: value.start_at,
-                        start_end: value.start_end
-                    };
-                }
-            });
-        }
-
-        jobData = {
-            ...jobToEdit,
-            workingHours
-        };
-    }
-});
-    $effect(() => {
-        if (jobData.job_type === 'Temporary') {
-            const days_sessions: DaySession[] = Object.entries(jobData.workingHours)
-                .filter(([_, value]) =>value.start_at && value.start_end)
-                .map(([day, value]) => ({
-                    day:day.toLowerCase(),
-                    start_at: value.start_at,
-                    start_end: value.start_end
-                }));
-            
-            if (!jobData.days_sessions || 
-                JSON.stringify(jobData.days_sessions) !== JSON.stringify(days_sessions)) {
-                jobData = {
-                    ...jobData,
-                    days_sessions
-                };
-            }
+        if (isEditMode && jobToEdit) {
+            jobData = {
+                jobTitle: jobToEdit.jobTitle || '',
+                clientId: clientId.toString(),
+                paymentType: jobToEdit.paymentType || '',
+                amount: jobToEdit.amount || 0,
+                jobType: 'Permanent',
+                employmentType: jobToEdit.employmentType || '',
+                jobLocation: jobToEdit.jobLocation || '',
+                hours: jobToEdit.hours || 0,
+                duty1: jobToEdit.duty1 || '',
+                duty2: jobToEdit.duty2 || '',
+                duty3: jobToEdit.duty3 || '',
+                duty4: jobToEdit.duty4 || '',
+                requirement1: jobToEdit.requirement1 || '',
+                requirement2: jobToEdit.requirement2 || '',
+                requirement3: jobToEdit.requirement3 || '',
+                requirement4: jobToEdit.requirement4 || '',
+                position: jobToEdit.position || '',
+                jobDescription: jobToEdit.jobDescription || '',
+                jobRequirement: jobToEdit.jobRequirement || '',
+                postedStartDate: jobToEdit.postedStartDate || new Date().toISOString(),
+                postedRoles: jobToEdit.postedRoles || 0,
+                isPublished: jobToEdit.isPublished || false
+            };
         }
     });
 
     function validateForm() {
-    try {
-        jobSchema.parse(jobData);
         errors = {};
-        return true;
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            console.log('Validation Errors:', JSON.stringify(error.errors, null, 2));
-            errors = error.errors.reduce((acc, curr) => {
-                // Get the full path as a string
-                const path = curr.path.join('.');
-                // Include more error details
-                acc[path] = `${curr.message} (${curr.code})`;
-                return acc;
-            }, {} as { [key: string]: string });
-            
-            // Log the formatted errors object
-            console.log('Formatted Errors:', errors);
-        }
-        return false;
-    }
-}
+        let isValid = true;
 
-function prepareJobDataForSubmission(): JobData {
-    const { workingHours, ...baseData } = jobData;
-    
-    if (jobData.job_type === 'Temporary' && workingHours) {
-        const days_sessions = Object.entries(workingHours)
-            .filter(([_, value]) => value.start_end && value.start_end) // Filter out empty entries
-            .map(([day, value]) => ({
-                day: day.toLowerCase(), 
-                start_at: value.start_at,
-                start_end: value.start_end
-            }));
-        
-        // Log the selected day sessions
-        console.log('Selected Day Sessions:', days_sessions);
-        console.table(days_sessions); // This will show the data in a nice table format
-        
-        return {
-            ...baseData,
-            company_id: clientId,
-            job_type: 'Temporary',
-            days_sessions
-        };
+        if (!jobData.jobTitle.trim()) {
+            errors.jobTitle = 'Job title is required';
+            isValid = false;
+        }
+        if (!jobData.paymentType.trim()) {
+            errors.paymentType = 'Payment type is required';
+            isValid = false;
+        }
+        if (jobData.amount <= 0) {
+            errors.amount = 'Amount must be greater than 0';
+            isValid = false;
+        }
+        if (!jobData.employmentType.trim()) {
+            errors.employmentType = 'Employment type is required';
+            isValid = false;
+        }
+        if (!jobData.jobLocation.trim()) {
+            errors.jobLocation = 'Job location is required';
+            isValid = false;
+        }
+        if (!jobData.duty1.trim()) {
+            errors.duty1 = 'At least one duty is required';
+            isValid = false;
+        }
+        if (!jobData.requirement1.trim()) {
+            errors.requirement1 = 'At least one requirement is required';
+            isValid = false;
+        }
+
+        return isValid;
     }
-    
-    return {
-        ...baseData,
-        company_id: clientId,
-        job_type: 'Permanent'
-    } as JobData;
-}
 
     async function handleSubmit(event: Event) {
-    event.preventDefault();
-    
+        event.preventDefault();
+        
+        const isValid = validateForm();
+        if (!isValid) {
+            toastType = 'error';
+            toastMessage = Object.values(errors).join(', ');
+            toastShow = true;
+            return;
+        }
 
-    
-    const isValid = validateForm();
-    if (!isValid) {
-        // Log the complete error object
-        console.log('Complete validation errors:', errors);
-        toastType = 'error';
-        toastMessage = Object.values(errors).join(', ');
-        toastShow = true;
-        
-        // Scroll to first error if any
-        const firstError = document.querySelector('[data-error]');
-        if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try {
+            isLoading = true;
+            
+            if (isEditMode && jobToEdit) {
+                await JobService.updateJob(jobToEdit.id, jobData, clientId.toString());
+                toastMessage = 'Job updated successfully';
+            } else {
+                await JobService.createJob(jobData, clientId.toString());
+                toastMessage = 'Job added successfully';
+            }
+            
+            toastType = 'success';
+            toastShow = true;
+            dispatch('addJob', { jobData });
+            dispatch('closeDialog');
+        } catch (error) {
+            console.error('Error submitting job:', error);
+            toastType = 'error';
+            toastMessage = 'Failed to save job: ' + (error instanceof Error ? error.message : 'Unknown error');
+            toastShow = true;
+        } finally {
+            isLoading = false;
         }
-        return;
     }
-    console.log("I am clicked");
-    try {
-        isLoading = true;
-        const submissionData = prepareJobDataForSubmission();
-        
-        if (isEditMode && jobToEdit) {
-            await JobService.updateJob(jobToEdit.id, submissionData);
-            toastMessage = 'Job updated successfully';
-        } else {
-            await JobService.createJob(submissionData);
-            toastMessage = 'Job added successfully';
-        }
-        
-        toastType = 'success';
-        toastShow = true;
-        dispatch('addJob', { jobData: submissionData });
-        dispatch('closeDialog');
-    } catch (error) {
-        console.error('Error submitting job:', error);
-        toastType = 'error';
-        toastMessage = 'Failed to save job: ' + (error instanceof Error ? error.message : 'Unknown error');
-        toastShow = true;
-    } finally {
-        isLoading = false;
-    }
-}
 </script>
 
 {#if showDialog}
 <div class="fixed inset-0 bg-gray-900/5 backdrop-blur-[2px] flex items-center justify-center z-50" transition:fade>
     <Toast 
-    bind:show={toastShow}
-    message={toastMessage}
-    type={toastType}
-/>
+        bind:show={toastShow}
+        message={toastMessage}
+        type={toastType}
+    />
     <div class="bg-white rounded-[15px] px-8 w-[1200px] max-h-[90vh] overflow-y-auto shadow-[0_2rem_3rem_rgba(132,139,200,0.18)] relative">
         <form on:submit|preventDefault={handleSubmit}>
             <div class="sticky top-0 bg-white z-10 py-6 border-b border-gray-100">
@@ -316,12 +227,6 @@ function prepareJobDataForSubmission(): JobData {
                         <JobDetails bind:jobData {errors} />
                     </div>
                 </div>
-
-                {#if jobData.job_type === 'Temporary'}
-                    <div class="w-96 flex-shrink-0">
-                        <WorkingHours bind:workingHours={jobData.workingHours} />
-                    </div>
-                {/if}
             </div>
         </form>
     </div>

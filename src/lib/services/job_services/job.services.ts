@@ -1,13 +1,13 @@
 import { getApiUrl, API_CONFIG } from '$lib/services/api';
-import type { BookJob, JobData,JobResponse } from './job.type';
+import type { BookJob, JobData,JobResponse, PermanentJobCreateRequest, PermanentJobsResponse } from './job.type';
 
 export const JobService = {
 
   
 
     //create job
-    async createJob(job: JobData) {
-        const url = getApiUrl(API_CONFIG.ENDPOINTS.JOBS.CREATE);
+    async createJob(job: JobData, clientId: string) {
+        const url = getApiUrl(`${API_CONFIG.ENDPOINTS.JOBS.CREATE}?clientId=${clientId}`);
         const token = localStorage.getItem('access_token');
         console.log('Request Payload:', job);
         
@@ -36,27 +36,19 @@ export const JobService = {
         }
     },
     //update job by id
-    async updateJob(jobId: number, job: JobData) {
-        const url = getApiUrl(API_CONFIG.ENDPOINTS.JOBS.UPDATE);
+    async updateJob(jobId: number, job: JobData, clientId: string) {
+        const url = getApiUrl(`${API_CONFIG.ENDPOINTS.JOBS.UPDATE}/${jobId}?clientId=${clientId}`);
         const token = localStorage.getItem('access_token');
-        console.log(token)
-        const payload = {
-            id: jobId,
-            ...job,
-            ...(job.job_type === 'Temporary' && 'days_sessions' in job 
-                ? { days_sessions: job.days_sessions } 
-                : {})
-        };
-        console.log('Request Payload:', payload);
+        console.log('Request Payload:', job);
         
         try {
             const response = await fetch(url, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(job)
             });
 
             const data = await response.json();
@@ -201,7 +193,80 @@ async publishJob(jobData: { id: number, publish: number }) {
         console.error('Network/API Error:', error);
         throw error;
     }
-}
+},
+
+async createPermanentJob(job: PermanentJobCreateRequest) {
+    const url = getApiUrl('Job');
+    const token = localStorage.getItem('access_token');
+    console.log('Creating Permanent Job:', job);
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(job),
+        });
+
+        const data = await response.json();
+        
+        if (response.status === 200 || response.status === 201) {
+            if (data.success) {
+                return data;
+            }
+        }
+        
+        throw new Error(`API Error: ${data.message || 'Unknown error occurred'}`);
+    } catch (error) {
+        console.error('Network/API Error:', error);
+        throw error;
+    }
+},
+
+async getPermanentJobs(page: number = 1, pageSize: number = 10, clientId?: string, search?: string): Promise<PermanentJobsResponse> {
+    let url = `Job/permanent?page=${page}&pageSize=${pageSize}`;
+    
+    // Add clientId parameter if provided
+    if (clientId) {
+        url += `&clientId=${encodeURIComponent(clientId)}`;
+    }
+    
+    // Add search parameter if provided (without trimming)
+    if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+    }
+
+    console.log(url)
+    
+    const fullUrl = getApiUrl(url);
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+        throw new Error('No access token found');
+    }
+
+    try {
+        const response = await fetch(fullUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch permanent jobs');
+        }
+
+        const data: PermanentJobsResponse = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching permanent jobs:', error);
+        throw error;
+    }
+},
 
 //interview
 };
