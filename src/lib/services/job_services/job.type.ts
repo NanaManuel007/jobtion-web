@@ -265,3 +265,175 @@ export type JobResponse = {
     createdAt: string;
     updatedAt: string;
 };
+
+
+// Updated Internal Job Types
+export type InternalJobCreateRequest = {
+    jobTitle: string;
+    paymentType: string;
+    jobType: string;
+    employmentType: string;
+    jobLocation: string;
+    longitude: number;
+    latitude: number;
+    hours: number;
+    duty1: string;
+    duty2?: string;
+    duty3?: string;
+    duty4?: string;
+    requirement1: string;
+    requirement2?: string;
+    requirement3?: string;
+    requirement4?: string;
+    position?: string;
+    jobDescription?: string;
+    jobRequirement?: string;
+    companyName: string;
+    postedStartDate: string;
+    jobStartDate: string;
+    jobCloseDate: string;
+    requiredLevel: string;
+};
+
+export type InternalJobUpdateRequest = InternalJobCreateRequest;
+
+export type InternalJobAPI = {
+    id: string;
+    jobTitle: string;
+    paymentType: string;
+    jobType: string;
+    employmentType: string;
+    jobLocation: string;
+    longitude: number;
+    latitude: number;
+    hours: number;
+    duty1: string;
+    duty2: string;
+    duty3: string;
+    duty4: string;
+    requirement1: string;
+    requirement2: string;
+    requirement3: string;
+    requirement4: string;
+    position: string;
+    jobDescription: string;
+    jobRequirement: string;
+    clientId: string;
+    companyName: string;
+    postedStartDate: string;
+    jobStartDate: string;
+    jobCloseDate: string;
+    createdByAdminId: string;
+    isCreatedByAdmin: boolean;
+    currentClientCharges: number;
+    currentClientTemporaryCharge: number;
+    temporaryChargesIsActive: boolean;
+    numberOfRolesAvailable: number;
+    isPublished: boolean;
+    requiredLevel: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type InternalJobsResponse = {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        jobs: InternalJobAPI[];
+        currentPage: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+    };
+};
+
+// Weekly Timesheet Types
+export type DayTimesheet = {
+    workDate: string;
+    start: string;
+    finish: string;
+    break: string;
+    expense: number;
+    miles: number;
+    rating: number;
+    notes: string;
+    longitude: number;
+    latitude: number;
+};
+
+export type WeeklyTimesheetCreateRequest = {
+    weekStartDate: string;
+    monday: DayTimesheet;
+    tuesday: DayTimesheet;
+    wednesday: DayTimesheet;
+    thursday: DayTimesheet;
+    friday: DayTimesheet;
+    saturday: DayTimesheet;
+    sunday: DayTimesheet;
+};
+
+export type WeeklyTimesheetAPI = {
+    id: string;
+    jobId: string;
+    clientId: string;
+    companyName:string;
+    internalJobId:string;
+    candidateId: string;
+    weekStartDate: string;
+    candidateFirstName:string;
+    jobTitle:string;
+    candidateLastName:string;
+    candidateEmail:string;
+    weeklyStatus: 'pending' | 'completed';
+    monday: DayTimesheet;
+    tuesday: DayTimesheet;
+    wednesday: DayTimesheet;
+    thursday: DayTimesheet;
+    friday: DayTimesheet;
+    saturday: DayTimesheet;
+    sunday: DayTimesheet;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type WeeklyTimesheetsResponse = {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        weeklyTimesheets: WeeklyTimesheetAPI[];
+        currentPage: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+    };
+};
+
+export type CandidateAPI = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    // Add other candidate fields as needed
+};
+
+export type CandidatesResponse = {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        items: CandidateAPI[];
+        currentPage: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+    };
+};

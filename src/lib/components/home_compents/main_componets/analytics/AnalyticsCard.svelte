@@ -28,17 +28,18 @@
 		if (!mounted) {
 			jobActions.getAllJobsWithoutClientId();
 			clientActions.fetchClients();
-			candidateStore.fetchCandidates();
+			candidateStore.fetchCandidates({ pageSize: 10000 });
 			mounted = true;
 		}
 	});
 	$effect(() => {
 	totalCandidates = $candidateStore.candidates.length;
 	verifiedCount = $candidateStore.candidates.filter(
-		(candidate) => candidate.adminVerification === 1
+		(candidate) => candidate.isAdminVerified === true
 	).length;
 
 	const total = totalCandidates;
+	console.log(verifiedCount);
 	verificationPercentage = total === 0 ? 0 : Number(((verifiedCount / total) * 100).toFixed(0));
 });
 
@@ -55,7 +56,7 @@
 	// Effect to handle clients updates
 	$effect(() => {
 		totalClients = $clients.length;
-		activeClientCount = $clients.filter((client) => client.total_jobs_posted).length;
+		activeClientCount = $clients.filter((client) => client.adminVerification === true).length;
 		inactiveClientCount = totalClients - activeClientCount;
 
 		const total = activeClientCount + inactiveClientCount;

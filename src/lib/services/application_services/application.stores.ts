@@ -1,27 +1,61 @@
 import { writable } from 'svelte/store';
-import type { Application } from './application.types';
+import type { Application, ApplicationQueryParams } from './application.types';
 import { ApplicationService } from './application.services';
 
 interface ApplicationStore {
     applications: Application[];
     loading: boolean;
     error: string | null;
+    pagination: {
+        currentPage: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+    };
+    filters: ApplicationQueryParams;
 }
 
 const createApplicationStore = () => {
     const initialState: ApplicationStore = {
         applications: [],
         loading: false,
-        error: null
+        error: null,
+        pagination: {
+            currentPage: 1,
+            pageSize: 10,
+            totalCount: 0,
+            totalPages: 0
+        },
+        filters: {}
     };
 
     const { subscribe, set, update } = writable(initialState);
+    let currentState = initialState;
 
-    const fetchApplications = async () => {
+    // Keep track of current state
+    subscribe(state => {
+        currentState = state;
+    });
+
+    const fetchApplications = async (params?: ApplicationQueryParams) => {
         update(state => ({ ...state, loading: true, error: null }));
         try {
-            const applications = await ApplicationService.getAllApplications();
-            set({ applications, loading: false, error: null });
+            const queryParams = { ...currentState.filters, ...params };
+            const response = await ApplicationService.getAllApplications(queryParams);
+            
+            update(state => ({
+                ...state,
+                applications: response.data.applications,
+                pagination: {
+                    currentPage: response.data.currentPage,
+                    pageSize: response.data.pageSize,
+                    totalCount: response.data.totalCount,
+                    totalPages: response.data.totalPages
+                },
+                filters: queryParams,
+                loading: false,
+                error: null
+            }));
         } catch (error) {
             update(state => ({
                 ...state,
@@ -34,6 +68,19 @@ const createApplicationStore = () => {
     return {
         subscribe,
         fetchApplications,
+        // Pagination methods
+        goToPage: async (page: number) => {
+            fetchApplications({ page });
+        },
+        changePageSize: async (pageSize: number) => {
+            fetchApplications({ pageSize, page: 1 });
+        },
+        searchApplications: async (search: string) => {
+            fetchApplications({ search, page: 1 });
+        },
+        filterByStatus: async (status: string) => {
+            fetchApplications({ status, page: 1 });
+        },
         acceptApplication: async (applicationId: number) => {
             update(state => ({ ...state, loading: true, error: null }));
             try {
@@ -85,7 +132,6 @@ const createApplicationStore = () => {
                 }));
             }
         },
-        //update interview
         reset: () => set(initialState)
     };
 };

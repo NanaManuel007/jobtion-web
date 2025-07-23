@@ -1,5 +1,5 @@
 import { API_CONFIG, getApiUrl } from '$lib/services/api';
-import type { ClientsType, ClientListResponse, SelectedClientType, ClientsResponse, ClientStatisticsResponse, ClientChargesResponse, ClientChargesUpdateRequest, ClientCustomFieldsResponse, ClientCustomFieldsUpdateRequest, ClientContactsResponse, ClientContactCreateRequest, ClientContactUpdateRequest } from './client.type';
+import type { ClientsType, ClientListResponse, SelectedClientType, ClientsResponse, ClientStatisticsResponse, ClientChargesResponse, ClientChargesUpdateRequest, ClientCustomFieldsResponse, ClientCustomFieldsUpdateRequest, ClientContactsResponse, ClientContactCreateRequest, ClientContactUpdateRequest, ClientInvoicesRequest, ClientInvoicesResponse } from './client.type';
 
 export class ClientService {
       static async getAllClients(page: number = 1, pageSize: number = 10, searchTerm: string = ''): Promise<ClientsResponse> {
@@ -88,90 +88,90 @@ export class ClientService {
         }
     }
 
-    static async createClient(formData: FormData): Promise<{ success: boolean; message: string }> {
-        const formDataObject = Object.fromEntries(formData.entries());
-        console.log('FormData as JSON:', JSON.stringify(formDataObject, null, 2));
-        try {
-            const token = localStorage.getItem('access_token');
+    // static async createClient(formData: FormData): Promise<{ success: boolean; message: string }> {
+    //     const formDataObject = Object.fromEntries(formData.entries());
+    //     console.log('FormData as JSON:', JSON.stringify(formDataObject, null, 2));
+    //     try {
+    //         const token = localStorage.getItem('access_token');
             
-            if (!token) {
-                return { success: false, message: 'No access token found' };
-            }
-            console.log('This is data on profile picture:', formData.get('profile_picture'));
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.CREATE)}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-            const formDataObject = Object.fromEntries(formData.entries());
-            console.log('Form data as object:', formDataObject);
-            const data = await response.json();
-            console.log('collect error ',data)
-            if (!response.ok) {
-                return { 
-                    success: false, 
-                    message: data.message || 'Failed to create client' 
-                };
-            }
+    //         if (!token) {
+    //             return { success: false, message: 'No access token found' };
+    //         }
+    //         console.log('This is data on profile picture:', formData.get('profile_picture'));
+    //         const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.CREATE)}`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`
+    //             },
+    //             body: formData
+    //         });
+    //         const formDataObject = Object.fromEntries(formData.entries());
+    //         console.log('Form data as object:', formDataObject);
+    //         const data = await response.json();
+    //         console.log('collect error ',data)
+    //         if (!response.ok) {
+    //             return { 
+    //                 success: false, 
+    //                 message: data.message || 'Failed to create client' 
+    //             };
+    //         }
             
-            return {
-                success: true,
-                message: 'Client created successfully'
-            };
+    //         return {
+    //             success: true,
+    //             message: 'Client created successfully'
+    //         };
             
-        } catch (error) {
-            console.error('Error creating client:', error);
-            return {
-                success: false,
-                message: 'An error occurred while creating the client'
-            };
-        }
-    }
+    //     } catch (error) {
+    //         console.error('Error creating client:', error);
+    //         return {
+    //             success: false,
+    //             message: 'An error occurred while creating the client'
+    //         };
+    //     }
+    // }
 
-    static async updateClient(formData: FormData, clientId: number): Promise<{ success: boolean; message: string }> {
+    // static async updateClient(formData: FormData, clientId: number): Promise<{ success: boolean; message: string }> {
 
-        const formDataObject = Object.fromEntries(formData.entries());
-        console.log('FormData as JSON:', JSON.stringify(formDataObject, null, 2));
+    //     const formDataObject = Object.fromEntries(formData.entries());
+    //     console.log('FormData as JSON:', JSON.stringify(formDataObject, null, 2));
         
-        try {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                return {
-                    success: false,
-                    message: 'No token was found'
-                }
-            }
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.UPDATE)}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData
-            });
+    //     try {
+    //         const token = localStorage.getItem('access_token');
+    //         if (!token) {
+    //             return {
+    //                 success: false,
+    //                 message: 'No token was found'
+    //             }
+    //         }
+    //         const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.COMPANIES.UPDATE)}`, {
+    //             method: 'PATCH',
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`,
+    //             },
+    //             body: formData
+    //         });
 
-            // console.log('Response data: ', response.json());
+    //         // console.log('Response data: ', response.json());
 
-            const data = await response.json();
-            console.log("success data ",data.success)
-            if (!data.success) {
-                return {
-                    success: false,
-                    message: data.message || 'Failed to update client',
-                }
-            }
-            return {
-                success: true,
-                message: 'Client updated successfully'
-            }
-        } catch (error) {
-            return {
-                success: false,
-                message: 'An error occurred while updating the client',
-            }
-        }
-    }
+    //         const data = await response.json();
+    //         console.log("success data ",data.success)
+    //         if (!data.success) {
+    //             return {
+    //                 success: false,
+    //                 message: data.message || 'Failed to update client',
+    //             }
+    //         }
+    //         return {
+    //             success: true,
+    //             message: 'Client updated successfully'
+    //         }
+    //     } catch (error) {
+    //         return {
+    //             success: false,
+    //             message: 'An error occurred while updating the client',
+    //         }
+    //     }
+    // }
     
     static async getClientById(id: string): Promise<SelectedClientType | null> {
         try {
@@ -553,6 +553,207 @@ export class ClientService {
             return {
                 success: false,
                 message: 'An error occurred while deleting contact'
+            };
+        }
+    }
+
+     static async createClient(clientData: any): Promise<{ success: boolean; message: string; data?: any }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                return { success: false, message: 'No access token found' };
+            }
+
+            const response = await fetch(`${getApiUrl('Client/register')}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(clientData)
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return { 
+                    success: false, 
+                    message: data.message || 'Failed to create client' 
+                };
+            }
+            
+            return {
+                success: true,
+                message: 'Client created successfully',
+                data: data.data
+            };
+            
+        } catch (error) {
+            console.error('Error creating client:', error);
+            return {
+                success: false,
+                message: 'An error occurred while creating the client'
+            };
+        }
+    }
+
+    static async updateClient(clientId: string, clientData: any): Promise<{ success: boolean; message: string; data?: any }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                return { success: false, message: 'No access token found' };
+            }
+
+            const response = await fetch(`${getApiUrl(`Client/${clientId}`)}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(clientData)
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return { 
+                    success: false, 
+                    message: data.message || 'Failed to update client' 
+                };
+            }
+            
+            return {
+                success: true,
+                message: 'Client updated successfully',
+                data: data.data
+            };
+            
+        } catch (error) {
+            console.error('Error updating client:', error);
+            return {
+                success: false,
+                message: 'An error occurred while updating the client'
+            };
+        }
+    }
+
+    static async uploadProfilePicture(clientId: string, file: File): Promise<{ success: boolean; message: string; data?: any }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                return { success: false, message: 'No access token found' };
+            }
+
+            const formData = new FormData();
+            // Change from 'profile_picture' to 'ProfilePicture'
+            formData.append('ProfilePicture', file);
+
+            const response = await fetch(`${getApiUrl(`Client/${clientId}/profile-picture`)}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return { 
+                    success: false, 
+                    message: data.message || 'Failed to upload profile picture' 
+                };
+            }
+            
+            return {
+                success: true,
+                message: 'Profile picture uploaded successfully',
+                data: data.data
+            };
+            
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+            return {
+                success: false,
+                message: 'An error occurred while uploading the profile picture'
+            };
+        }
+    }
+    static async getClientInvoices(params: ClientInvoicesRequest): Promise<ClientInvoicesResponse | null> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                console.error('No access token found');
+                return null;
+            }
+    
+            const queryParams = new URLSearchParams();
+            if (params.pageNumber) queryParams.append('pageNumber', params.pageNumber.toString());
+            if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+            if (params.fromDate) queryParams.append('fromDate', params.fromDate);
+            if (params.toDate) queryParams.append('toDate', params.toDate);
+            if (params.clientId) queryParams.append('clientId', params.clientId);
+    
+            const response = await fetch(`${getApiUrl('admin/invoices/client-summaries')}?${queryParams.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        
+            if (!response.ok) {
+                console.error('Failed to fetch client invoices:', response.statusText);
+                return null;
+            }
+        
+            const data: ClientInvoicesResponse = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching client invoices:', error);
+            return null;
+        }
+    }
+
+    static async verifyClient(clientId: string, isAdminVerified: boolean): Promise<{ success: boolean; message: string }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                return { success: false, message: 'No access token found' };
+            }
+            
+            const response = await fetch(`${API_CONFIG.BASE_URL}Client/${clientId}/admin-verification`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ isAdminVerified })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return { 
+                    success: false, 
+                    message: data.message || 'Failed to verify client' 
+                };
+            }
+            
+            return {
+                success: true,
+                message: 'Client verified successfully'
+            };
+        } catch (error) {
+            console.error('Error verifying client:', error);
+            return {
+                success: false,
+                message: 'An error occurred while verifying the client'
             };
         }
     }

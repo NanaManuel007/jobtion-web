@@ -1,283 +1,306 @@
-import { API_CONFIG, getApiUrl } from '$lib/services/api';
-import type { AvailabilitySchedule, Candidate, CandidateDetailsResponse, Verification } from './candidate.type';
+import { getApiUrl, API_CONFIG } from '../api';
+import type { Candidate, CandidateListResponse, CandidateQueryParams, DetailedCandidateResponse, DetailedCandidate, BankDetails, PaymentModel } from './candidate.types';
 
 export class CandidateService {
-	static async getAllCandidates(): Promise<Candidate[]> {
-		try {
-			const token = localStorage.getItem('access_token');
+    static async getAllCandidates(params: CandidateQueryParams = {}): Promise<CandidateListResponse> {
+        try {
+            const token = localStorage.getItem('access_token');
 
-			if (!token) {
-				console.error('No access token found');
-				return [];
-			}
+            if (!token) {
+                console.error('No access token found');
+                throw new Error('No access token found');
+            }
 
-			const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CANDIDATES.LIST), {
-				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json'
-				}
-			});
+            // Build query parameters
+            const queryParams = new URLSearchParams();
+            if (params.search) queryParams.append('search', params.search);
+            if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+            if (params.userType) queryParams.append('userType', params.userType);
+            if (params.page) queryParams.append('page', params.page.toString());
+            if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+            if (params.isAdminVerified !== undefined) queryParams.append('isAdminVerified', params.isAdminVerified.toString());
+            if (params.isEmailVerified !== undefined) queryParams.append('isEmailVerified', params.isEmailVerified.toString());
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch candidates');
-			}
+            const url = `${getApiUrl(API_CONFIG.ENDPOINTS.CANDIDATES.LIST)}?${queryParams.toString()}`;
 
-			const data = await response.json();
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-			if (data.success && Array.isArray(data.data)) {
-				return data.data.map((candidate: any) => ({
-					id: candidate.id,
-					pronouns: candidate.pronouns,
-					title: candidate.title,
-					companyName: candidate.company_name,
-					firstName: candidate.first_name,
-					lastName: candidate.last_name,
-					otherName: candidate.other_name,
-					companyJobTitle: candidate.company_job_title,
-					email: candidate.email,
-					userType: candidate.user_type,
-					emailVerifiedAt: candidate.email_verified_at,
-					phoneNumber: candidate.phone_number,
-					address: candidate.address,
-					crn: candidate.crn,
-					urn: candidate.urn,
-					dob: candidate.dob,
-					gender: candidate.gender,
-					aboutMe: candidate.about_me,
-					profilePicture: candidate.profile_picture || null,
-					identification: candidate.identification,
-					proofOfAddress: candidate.proof_of_address,
-					nationalIdentity: candidate.national_identity,
-					companyHouseNumber: candidate.company_house_number,
-					website: candidate.website,
-					lat: candidate.lat,
-					postcode: candidate.postcode,
-					lng: candidate.lng,
-					verified: candidate.verified,
-					emailVerified: candidate.email_verified,
-					adminVerification: candidate.admin_verification,
-					password: candidate.password,
-					rememberToken: candidate.remember_token,
-					fcmToken: candidate.fcm_token,
-					totalJobsPosted: candidate.total_jobs_posted,
-					achieved: candidate.achieved,
-					createdAt: candidate.created_at,
-					updatedAt: candidate.updated_at,
-					certificate: candidate.certificate,
-					dbsCertificate: candidate.dbs_certificate,
-					dbsExpiryDate: candidate.dbs_expiry_date,
-					dbsSerialNumber: candidate.dbs_serial_number,
-					resumeCv: candidate.resume_cv,
-					citizen: candidate.citizen,
-					rightToWorkDoc: candidate.right_to_work_doc,
-					rightToWork: candidate.right_to_work,
-					editedCv: candidate.edited_cv
-				}));
-			}
+            if (!response.ok) {
+                throw new Error('Failed to fetch candidates');
+            }
 
-			return [];
-		} catch (error) {
-			console.error('Error fetching candidates:', error);
-			return [];
-		}
-	}
+            const data: CandidateListResponse = await response.json();
 
-	static async getCandidateById(id: number): Promise<CandidateDetailsResponse | null> {
-		try {
-			const token = localStorage.getItem('access_token');
+            if (data.success) {
+                return data;
+            } else {
+                throw new Error(data.responseBody || 'Failed to fetch candidates');
+            }
+        } catch (error) {
+            console.error('Error fetching candidates:', error);
+            throw error;
+        }
+    }
 
-			if (!token) {
-				console.error('No access token found');
-				return null;
-			}
+    // Helper method to get only candidates (filter by userType)
+    static async getCandidatesOnly(params: CandidateQueryParams = {}): Promise<CandidateListResponse> {
+        return this.getAllCandidates({ ...params, userType: 'candidate' });
+    }
 
-			const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CANDIDATES.DETAILS), {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ id })
-			});
+    // Get single candidate by ID
+    static async getSingleCandidate(userId: string): Promise<{ success: boolean; data?: DetailedCandidate; message?: string }> {
+        try {
+            const token = localStorage.getItem('access_token');
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch candidate details');
-			}
+            if (!token) {
+                throw new Error('No access token found');
+            }
 
-			const data = await response.json();
+            const url = `${getApiUrl(`admin/users/${userId}`)}`;
 
-			if (data.success && data.data) {
-				// Map the response data to our TypeScript types
-				const responseData = data.data;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-				// Map the details object
-				const details: Candidate = {
-					id: responseData.details.id,
-					pronouns: responseData.details.pronouns,
-					title: responseData.details.title,
-					companyName: responseData.details.company_name,
-					firstName: responseData.details.first_name,
-					lastName: responseData.details.last_name,
-					otherName: responseData.details.other_name,
-					companyJobTitle: responseData.details.company_job_title,
-					email: responseData.details.email,
-					userType: responseData.details.user_type,
-					emailVerifiedAt: responseData.details.email_verified_at,
-					phoneNumber: responseData.details.phone_number,
-					address: responseData.details.address,
-					crn: responseData.details.crn,
-					urn: responseData.details.urn,
-					dob: responseData.details.dob,
-					gender: responseData.details.gender,
-					aboutMe: responseData.details.about_me,
-					profilePicture: responseData.details.profile_picture,
-					identification: responseData.details.identification,
-					proofOfAddress: responseData.details.proof_of_address,
-					nationalIdentity: responseData.details.national_identity,
-					companyHouseNumber: responseData.details.company_house_number,
-					website: responseData.details.website,
-					lat: responseData.details.lat,
-					lng: responseData.details.lng,
-					postcode: responseData.details.postcode,
-					verified: responseData.details.verified,
-					emailVerified: responseData.details.email_verified,
-					adminVerification: responseData.details.admin_verification,
-					password: responseData.details.password,
-					rememberToken: responseData.details.remember_token,
-					fcmToken: responseData.details.fcm_token,
-					totalJobsPosted: responseData.details.total_jobs_posted,
-					achieved: responseData.details.achieved,
-					createdAt: responseData.details.created_at,
-					updatedAt: responseData.details.updated_at,
-					certificate: responseData.details.certificate,
-					dbsCertificate: responseData.details.dbs_certificate,
-					dbsExpiryDate: responseData.details.dbs_expiry_date,
-					dbsSerialNumber: responseData.details.dbs_serial_number,
-					resumeCv: responseData.details.resume_cv,
-					citizen: responseData.details.citizen,
-					rightToWorkDoc: responseData.details.right_to_work_doc,
-					rightToWork: responseData.details.right_to_work,
-					editedCv: responseData.details.edited_cv
-				};
+            if (!response.ok) {
+                throw new Error('Failed to fetch candidate');
+            }
 
-				// Map qualifications array
-				const qualifications = responseData.qualifications.map((qual: any) => ({
-					id: qual.id,
-					user_id: qual.user_id,
-					qualification_type: qual.qualification_type,
-					upload_doc: qual.upload_doc,
-					created_at: qual.created_at,
-					updated_at: qual.updated_at
-				}));
+            const data: DetailedCandidateResponse = await response.json();
 
-				// Map references array
-				const references = responseData.references.map((ref: any) => ({
-					id: ref.id,
-					type: ref.type,
-					doc: ref.doc,
-					user_id: ref.user_id
-				}));
+            if (data.success) {
+                return { success: true, data: data.data };
+            } else {
+                throw new Error(data.responseBody || 'Failed to fetch candidate');
+            }
+        } catch (error) {
+            console.error('Error fetching single candidate:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to fetch candidate'
+            };
+        }
+    }
 
-				// Map other documents array
-				const otherDocuments = responseData.other_documents.map((doc: any) => ({
-					id: doc.id,
-					type: doc.type,
-					doc: doc.doc,
-					user_id: doc.user_id
-				}));
+    // Admin verification method
+    static async verifyCandidate(userId: string, isAdminVerified: boolean): Promise<{ success: boolean; message: string }> {
+        try {
+            const token = localStorage.getItem('access_token');
 
-				// Map applied jobs array
-				const appliedJobs = responseData.applied_jobs
-					? responseData.applied_jobs.map((job: any) => ({
-							job_title: job.job_title,
-							job_id: job.job_id,
-							company_name: job.company_name,
-							job_type: job.job_type,
-							employment_type: job.employment_type,
-							status: job.status,
-							interview_invite_link: job.interview_invite_link,
-							interview_date: job.interview_date,
-							interview_time: job.interview_time,
-							interview_by: job.interview_by,
-							created_at: job.created_at,
-							hours: job.hours,
-							days_sessions: job.days_sessions || [],
-							tsm: job.tsm || []
-						}))
-					: [];
-                    const availabilitySchedule: AvailabilitySchedule = responseData.availability_schedule || {
-                        Monday: [],
-                        Tuesday: [],
-                        Wednesday: [],
-                        Thursday: [],
-                        Friday: [],
-                        Saturday: [],
-                        Sunday: []
-                    };
-                    const bookings = responseData.bookings ? responseData.bookings.map((booking: any) => ({
-                        id: booking.id,
-                        company_name: booking.company_name,
-                        job_title: booking.job_title,
-                        candidate_status: booking.candidate_status,
-                        booking_status: booking.booking_status
-                    })) : [];
-				// Return the properly mapped CandidateDetailsResponse
-                return {
-                    details,
-                    qualifications,
-                    references,
-                    other_documents: otherDocuments,
-                    applied_jobs: appliedJobs,
-                    availability_schedule: availabilitySchedule,
-                    bookings: bookings
-                };
-			}
+            if (!token) {
+                throw new Error('No access token found');
+            }
 
-			return null;
-		} catch (error) {
-			console.error('Error fetching candidate details:', error);
-			return null;
-		}
-	}
+            const url = `${getApiUrl(`admin/users/${userId}/verification`)}`;
 
-	static async verifyCandidate(
-		verification: Verification
-	): Promise<{ success: boolean; message: string }> {
-		try {
-			const token = localStorage.getItem('access_token');
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    isAdminVerified
+                })
+            });
 
-			if (!token) {
-				return { success: false, message: 'No access token found' };
-			}
-			const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CANDIDATES.VERIFYCANDIDATE), {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(verification)
-			});
+            if (!response.ok) {
+                throw new Error('Failed to update candidate verification');
+            }
 
-			const data = await response.json();
+            const data = await response.json();
 
-			if (!response.ok) {
-				return {
-					success: false,
-					message: data.message || 'Failed to verify candidate'
-				};
-			}
+            if (data.success) {
+                return { success: true, message: 'Candidate verification updated successfully' };
+            } else {
+                throw new Error(data.responseBody || 'Failed to update candidate verification');
+            }
+        } catch (error) {
+            console.error('Error updating candidate verification:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to verify candidate'
+            };
+        }
+    }
 
-			return {
-				success: true,
-				message: 'Candidate verification status updated successfully'
-			};
-		} catch (error) {
-			console.error('Error verifying candidate:', error);
-			return {
-				success: false,
-				message: 'An error occurred while updating verification status'
-			};
-		}
-	}
+    // Bank Details API methods
+    static async createBankDetails(userId: string, bankDetails: Partial<BankDetails>): Promise<{ success: boolean; message: string; data?: BankDetails }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const url = `${getApiUrl(`admin/bank-details/user/${userId}`)}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bankDetails)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create bank details');
+            }
+
+            const data = await response.json();
+            return { success: true, message: 'Bank details created successfully', data: data.data };
+        } catch (error) {
+            console.error('Error creating bank details:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to create bank details'
+            };
+        }
+    }
+
+    static async updateBankDetails(userId: string, bankDetails: Partial<BankDetails>): Promise<{ success: boolean; message: string; data?: BankDetails }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const url = `${getApiUrl(`admin/bank-details/user/${userId}`)}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bankDetails)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update bank details');
+            }
+
+            const data = await response.json();
+            return { success: true, message: 'Bank details updated successfully', data: data.data };
+        } catch (error) {
+            console.error('Error updating bank details:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to update bank details'
+            };
+        }
+    }
+
+    // Payment Model API methods
+    static async createPaymentModel(userId: string, paymentModel: Partial<PaymentModel>): Promise<{ success: boolean; message: string; data?: PaymentModel }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const url = `${getApiUrl(`admin/bank-details/payment-model`)}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    paymentModel
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create payment model');
+            }
+
+            const data = await response.json();
+            return { success: true, message: 'Payment model created successfully', data: data.data };
+        } catch (error) {
+            console.error('Error creating payment model:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to create payment model'
+            };
+        }
+    }
+
+    static async updatePaymentModel(userId: string, paymentModel: Partial<PaymentModel>): Promise<{ success: boolean; message: string; data?: PaymentModel }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const url = `${getApiUrl(`admin/bank-details/payment-model/user/${userId}`)}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentModel)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update payment model');
+            }
+
+            const data = await response.json();
+            return { success: true, message: 'Payment model updated successfully', data: data.data };
+        } catch (error) {
+            console.error('Error updating payment model:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to update payment model'
+            };
+        }
+    }
+
+    // Bank Details Verification method
+    static async verifyBankDetails(userId: string, isVerified: boolean): Promise<{ success: boolean; message: string; data?: BankDetails }> {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const url = `${getApiUrl(`admin/bank-details/user/${userId}/verify`)}`;
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ isVerified })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update bank details verification');
+            }
+
+            const data = await response.json();
+            return { 
+                success: true, 
+                message: `Bank details ${isVerified ? 'verified' : 'unverified'} successfully`, 
+                data: data.data 
+            };
+        } catch (error) {
+            console.error('Error updating bank details verification:', error);
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Failed to update bank details verification'
+            };
+        }
+    }
 }

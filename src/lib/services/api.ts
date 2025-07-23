@@ -3,8 +3,8 @@
 export const API_CONFIG = {
     // BASE_URL: 'https://node.jobtiondevs.com/api/jobtion/', 
     IMAGE_URL: 'https://minio-kogckgccwg40sgkksc4k4o4w.46.202.141.196.sslip.io/jobtion/', 
-    BASE_URL: 'http://localhost:8080/api/', 
-    // BASE_URL: 'https://5af6-2c0f-2a80-785-3008-a16c-b68e-b1eb-357d.ngrok-free.app/api/jobtion/', 
+    // BASE_URL: 'http://localhost:8080/api/', 
+    BASE_URL: 'http://zw0s4ggsk000kc8088gsgs4o.46.202.141.196.sslip.io/api/', 
     ENDPOINTS: {
         AUTH: {
             LOGIN: 'admin/auth/login',
@@ -44,7 +44,7 @@ export const API_CONFIG = {
             DELETEBOOKING: 'delete-booking',
             GETBOOKING: 'get-all-bookings',
             PUBLISHJOB: 'update-job-status',
-            GETAPPLICATIONS: 'get-all',
+            GETAPPLICATIONS: 'applications/admin/all',
             APPROVEAPPLICATION: 'accept',
             DECLINEAPPLICATION: 'decline',
             SETINTVERVIEW: 'set-interview',
@@ -57,7 +57,7 @@ export const API_CONFIG = {
         },
         
         CANDIDATES: {
-            LIST: 'get-all-candidate',
+            LIST: 'admin/users',
             DETAILS: 'fetch-single-candidate',
             VERIFYCANDIDATE: 'verify-candidate',
             ANALYTICS: '/companies/:id/analytics',

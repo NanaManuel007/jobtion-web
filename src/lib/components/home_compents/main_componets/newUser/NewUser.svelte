@@ -11,14 +11,14 @@
     }> = [];
 
     onMount(async () => {
-        await candidateStore.fetchCandidates();
+        await candidateStore.fetchCandidates({ pageSize: 10000 });
         const candidates = $candidateStore.candidates
-            .filter(candidate => candidate.verified === 1)
+            .filter(candidate => candidate.isEmailVerified === true)
             .slice(0, 5)
             .map(candidate => ({
                 name: `${candidate.firstName} ${candidate.lastName || ''}`.trim(),
                 time: candidate.createdAt,
-                image: candidate.profilePicture ,
+                image: candidate.profilePictureUrl ,
                 candidateId: candidate.id
             }));
         verifiedCandidates = candidates;
@@ -56,7 +56,7 @@
                 onclick={() => handleView(user.candidateId)}
                 >
                     <img class= "w-16 h-16 rounded-full object-cover "
-                     src={user.image !==null ?"https://node.jobtiondevs.com/"+user.image : 
+                     src={user.image !==null ?"https://minio-kogckgccwg40sgkksc4k4o4w.46.202.141.196.sslip.io/jobtion/"+user.image : 
                      '/user_images/default.jpg'} alt={`${user.name}`} >
 
                     <!-- <img class="w-16 h-16 rounded-full object-cover" src={user.image} alt={user.name} /> -->

@@ -4,9 +4,10 @@
     import GoogleMaps from '../general_components/GoogleMaps.svelte';
     import { validateClientForm, type ClientFormData } from '$lib/services/client_services/client.validation';
     import { ClientService } from '$lib/services/client_services/client.services';
-    import { clientActions } from '$lib/services/client_services/client.store';
+    import { clientActions, isLoading } from '$lib/services/client_services/client.store';
     import type { ClientsType } from '$lib/services/client_services/client.type';
     import Toast from '../general_components/Toast.svelte';
+	import { API_CONFIG } from '$lib/services/api';
 
     const dispatch = createEventDispatcher();
     const { showModal, existingClient = null } = $props<{
@@ -19,50 +20,61 @@
     let toastType = $state<'success' | 'error'>('success');
 
     let formData = $state({
-        companyName: existingClient?.company_name || '',
-        ceoFirstName: existingClient?.first_name || '',
-        ceoLastName: existingClient?.last_name || '',
-        jobTitle: existingClient?.company_job_title || '',
+        companyName: existingClient?.companyName || '',
+        ceoFirstName: existingClient?.ceoFirstName || '',
+        ceoLastName: existingClient?.ceoLastName || '',
+        jobTitle: existingClient?.companyJobTitle || '',
         companyEmail: existingClient?.email || '',
-        companyNumber: existingClient?.phone_number || '',
+        password: '', // Add password field for new clients
+        companyNumber: existingClient?.phoneNumber || '',
         companyAddress: existingClient?.address || '',
         postalCode: existingClient?.postcode || '',
-        registrationNumber: existingClient?.company_house_number || '',
+        registrationNumber: existingClient?.companyHouseNumber || '',
+        pronouns: '', // Add missing field
+        title: '', // Add missing field  
+        otherName: '', // Add missing field
+        aboutCompany: '', // Add missing field
         website: existingClient?.website || '',
         linkedin: existingClient?.linkedin || '',
-        latitude: existingClient?.lat || 0.0,
-        longitude: existingClient?.lng || 0.0,
+        latitude: existingClient?.latitude || 0.0,
+        longitude: existingClient?.longitude || 0.0,
         mapsLocation: existingClient?.address || '',
-        companyLogo: existingClient?.profile_picture || '',
-        existingLogoName: existingClient?.profile_picture || '',
+        companyLogo: null as File | null,
+        existingLogoName: existingClient?.profilePictureUrl || '',
         clientId: existingClient?.id || null,
     });
+
     $effect(() => {
         if (existingClient) {
             formData = {
-                companyName: existingClient.company_name || '',
-                ceoFirstName: existingClient.first_name || '',
-                ceoLastName: existingClient.last_name || '',
-                jobTitle: existingClient.company_job_title || '',
+                companyName: existingClient.companyName || '',
+                ceoFirstName: existingClient.ceoFirstName || '',
+                ceoLastName: existingClient.ceoLastName || '',
+                jobTitle: existingClient.companyJobTitle || '',
                 companyEmail: existingClient.email || '',
-                companyNumber: existingClient.phone_number || '',
+                password: '', // Add missing password field
+                companyNumber: existingClient.phoneNumber || '',
                 companyAddress: existingClient.address || '',
                 postalCode: existingClient.postcode || '',
-                registrationNumber: existingClient.company_house_number || '',
+                registrationNumber: existingClient.companyHouseNumber || '',
+                pronouns: '', // Add missing pronouns field
+                title: '', // Add missing title field
+                otherName: '', // Add missing otherName field
+                aboutCompany: '', // Add missing aboutCompany field
                 website: existingClient.website || '',
                 linkedin: existingClient.linkedin || '',
-                latitude: existingClient.lat || 0.0,
-                longitude: existingClient.lng || 0.0,
+                latitude: existingClient.latitude || 0.0,
+                longitude: existingClient.longitude || 0.0,
                 mapsLocation: existingClient.address || '',
-                companyLogo: existingClient.profile_picture || '',
-                existingLogoName: existingClient.profile_picture || '',
+                companyLogo: null,
+                existingLogoName: existingClient.profilePictureUrl || '',
                 clientId: existingClient.id || null,
             };
         }
     });
+
     let errors = $state<Partial<Record<keyof ClientFormData, string>>>({});
     let isSubmitting = $state(false);
-    let companyLogo: File | null;
 
     function handleClose() {
         showToast = false;
@@ -85,20 +97,12 @@
                     companyLogo: 'Company logo is required'
                 };
             }
-            companyLogo = null;
-            formData = {
-                ...formData,
-                companyLogo: null
-            };
+            formData.companyLogo = null;
             return;
         }
 
         const file = input.files[0];
-        companyLogo = file;
-        formData = {
-            ...formData,
-            companyLogo: file
-        };
+        formData.companyLogo = file;
 
         if (errors.companyLogo) {
             delete errors.companyLogo;
@@ -107,90 +111,102 @@
     }
 
     async function handleSubmit() {
-    try {
-        // console.log('Submit started', { formData });
-        isSubmitting = true;
-        errors = {};
+        try {
+            isSubmitting = true;
+            errors = {};
 
-        const validation = validateClientForm(formData);
-        
+            const validation = validateClientForm(formData);
 
-        if (!validation.success) {
-            errors = validation.errors;
-            console.log('Validation failed:', errors);
-            isSubmitting = false;
-            return;
-        }
-        
-        const formCollectData = new FormData();
-        formCollectData.append('company_name', formData.companyName);
-        if (!existingClient) {
-            formCollectData.append('company_email', formData.companyEmail);
-        }
-        formCollectData.append('first_name', formData.ceoFirstName);
-        formCollectData.append('last_name', formData.ceoLastName);
-        formCollectData.append('company_job_title', formData.jobTitle);
-        formCollectData.append('phone_number', formData.companyNumber);
-        formCollectData.append('address', formData.companyAddress);
-        
-        if (companyLogo) {
-            formCollectData.append('profile_picture', companyLogo);
-        } else if (existingClient?.profile_picture) {
-            formCollectData.append('profile_picture', existingClient.profile_picture);
-        }
-      
-        if(existingClient){
-            formCollectData.append('id', existingClient.id.toString());
-        }
-        console.log('Validation result:', validation);
-        formCollectData.append('lng', formData.longitude.toString());
-        formCollectData.append('lat', formData.latitude.toString());
-        formCollectData.append('company_reg_number', formData.registrationNumber);
-        formCollectData.append('crn', formData.registrationNumber);
-        formCollectData.append('website', formData.website);
-        formCollectData.append('postal_code', formData.postalCode);
-        formCollectData.append('linkedin', formData.linkedin);
+            if (!validation.success) {
+                errors = validation.errors;
+                console.log('Validation failed:', errors);
+                isSubmitting = false;
+                return;
+            }
 
-        console.log('FormData prepared:', Object.fromEntries(formCollectData));
+            // Prepare client data (without file)
+            const clientData = {
+                companyName: formData.companyName,
+                ceoFirstName: formData.ceoFirstName,
+                ceoLastName: formData.ceoLastName,
+                companyJobTitle: formData.jobTitle,
+                email: formData.companyEmail,
+                password: formData.password, // Add password for new clients
+                phoneNumber: formData.companyNumber,
+                address: formData.companyAddress,
+                postcode: formData.postalCode,
+                companyHouseNumber: formData.registrationNumber,
+                pronouns: formData.pronouns || '', // Add missing field
+                title: formData.title || '', // Add missing field
+                otherName: formData.otherName || '', // Add missing field
+                aboutCompany: formData.aboutCompany || '', // Add missing field
+                website: formData.website,
+                latitude: formData.latitude,
+                longitude: formData.longitude
+            };
 
-        let result;
-        if (existingClient) {
-            result = await ClientService.updateClient(formCollectData, existingClient.id);
-            console.log("data results ",result)
-            if (result.success) {
-                await clientActions.fetchClients();
+            let result;
+            let clientId = existingClient?.id;
+
+            if (existingClient) {
+                // Update existing client using store action
+                result = await clientActions.updateClient(existingClient.id, clientData);
+                if (result.success) {
+                    clientId = existingClient.id;
+                }
+            } else {
+                // Create new client using store action
+                result = await clientActions.createClient({
+                    ...clientData,
+                    email: formData.companyEmail // Include email for new clients
+                });
+                if (result.success && result.data) {
+                    clientId = result.data.id;
+                }
+            }
+
+            if (!result.success) {
+                toastType = 'error';
+                toastMessage = result.message || 'An error occurred';
+                showToast = true;
+                return;
+            }
+
+            // Upload profile picture if provided using store action
+            if (formData.companyLogo && clientId) {
+                const uploadResult = await clientActions.uploadProfilePicture(clientId, formData.companyLogo);
+                if (!uploadResult.success) {
+                    console.warn('Failed to upload profile picture:', uploadResult.message);
+                    // Don't fail the entire operation for image upload failure
+                }
+            }
+
+            // The store actions already handle data refreshing, so we don't need to manually call fetchClients
+            
+            if (existingClient) {
+                // Get the updated client data from the store
                 const updatedClient = await clientActions.getClientById(existingClient.id);
                 dispatch('clientAdded', updatedClient);
-            }
-        } else {
-            result = await ClientService.createClient(formCollectData);
-            if (result.success) {
-                await clientActions.fetchClients();
-                dispatch('clientAdded', result);
+            } else {
+                dispatch('clientAdded', result.data);
                 handleClose();
             }
-        }
 
-        if (result.success) {
             toastType = 'success';
-            toastMessage = result.message || (existingClient 
+            toastMessage = existingClient 
                 ? 'Company updated successfully'
-                : 'Company added successfully');
+                : 'Company added successfully';
             showToast = true;
-        } else {
+
+        } catch (error) {
+            console.error('Error submitting form:', error);
             toastType = 'error';
-            toastMessage = result.message || 'An error occurred';
+            toastMessage = 'An unexpected error occurred';
             showToast = true;
+        } finally {
+            isSubmitting = false;
         }
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        toastType = 'error';
-        toastMessage = 'An unexpected error occurred';
-        showToast = true;
-    } finally {
-        isSubmitting = false;
     }
-}
 
     function handleToastClose() {
         showToast = false;
@@ -201,10 +217,10 @@
     {#if showModal}
         <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 py-5">
             <Toast 
-    show={showToast}
-    message={toastMessage}
-    type={toastType}
-/>
+                show={showToast}
+                message={toastMessage}
+                type={toastType}
+            />
             <div class="relative my-auto w-full max-w-[95%] rounded-lg bg-white p-8">
                 <button
                     onclick={handleClose}
@@ -217,13 +233,13 @@
                 </button>
                 <div class="flex items-center gap-4 mb-6">
                     <h2 class="text-2xl font-semibold text-gray-800">
-                        {existingClient ? `Update ${existingClient?.company_name} Details` : 'Add New Company'}
+                        {existingClient ? `Update ${existingClient?.companyName} Details` : 'Add New Company'}
                     </h2>
-                    {#if existingClient && existingClient.profile_picture}
+                    {#if existingClient && existingClient.profilePictureUrl}
                         <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200">
                             <img 
-                                src={'https://node.jobtiondevs.com/' + existingClient.profile_picture} 
-                                alt={existingClient.company_name}
+                                src={existingClient.profilePictureUrl !== null ? API_CONFIG.IMAGE_URL + existingClient.profilePictureUrl : ''} 
+                                alt={existingClient.companyName}
                                 class="w-full h-full object-cover"
                             />
                         </div>
@@ -274,6 +290,17 @@
                                     bind:value={formData.companyEmail}
                                     error={errors.companyEmail}
                                 />
+                                {#if !existingClient}
+                                <InputField
+                                    label="Password"
+                                    type="password"
+                                    icon="lock"
+                                    placeholder="Enter password"
+                                    required={true}
+                                    bind:value={formData.password}
+                                    error={errors.password}
+                                />
+                                {/if}
                                 <InputField
                                     label="Company Phone"
                                     type="tel"
@@ -383,20 +410,7 @@
                         <GoogleMaps onLocationSelect={handleLocationSelect} />
                     </div>
                 </div>
-                
             </div>
         </div>
     {/if}
-
-    <!-- <div class="fixed inset-0 z-[60] pointer-events-none">
-        {#if showToast}
-            <div class="absolute top-4 right-4 pointer-events-auto">
-                <Toast 
-                    message={toastMessage}
-                    type={toastType}
-           
-                />
-            </div>
-        {/if}
-    </div> -->
 </div>

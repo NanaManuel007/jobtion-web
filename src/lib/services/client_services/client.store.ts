@@ -10,7 +10,10 @@ import type {
     ClientCustomFieldsUpdateRequest,
     ClientContactsResponse,
     ClientContactCreateRequest,
-    ClientContactUpdateRequest
+    ClientContactUpdateRequest,
+    ClientInvoicesResponse,
+    ClientInvoicesRequest,
+    ClientInvoiceGroup
 } from './client.type';
 import { ClientService } from './client.services';
 
@@ -48,13 +51,100 @@ export const customFieldsLoading = writable<boolean>(false);
 export const clientContacts = writable<ClientContactsResponse | null>(null);
 export const contactsLoading = writable<boolean>(false);
 export const contactsError = writable<string | null>(null);
+export const clientInvoices = writable<ClientInvoiceGroup[]>([]);
+export const invoicesLoading = writable<boolean>(false);
+export const invoicesTotalCount = writable<number>(0);
+export const invoicesCurrentPage = writable<number>(1);
+export const invoicesPageSize = writable<number>(10);
+
+// Contact stores
+// export const clientContacts = writable<ClientContactsResponse | null>(null);
+// export const contactsLoading = writable<boolean>(false);
+// export const contactsError = writable<string | null>(null);
 
 export const clientActions = {
-    async fetchClients(page?: number, size?: number, search?: string) {
-        if (get(isLoading)) {
-            console.log('Already fetching clients, skipping request');
-            return;
+    async createClient(clientData: any) {
+        isLoading.set(true);
+        try {
+            const result = await ClientService.createClient(clientData);
+            if (result.success) {
+                // Set loading to false before calling fetchClients to avoid race condition
+                isLoading.set(false);
+                // Refresh the client list after successful creation
+                await this.fetchClients();
+                // Update selected client if we have the new client data
+                if (result.data) {
+                    selectedClient.set(result.data);
+                }
+                return result;
+            }
+            return result;
+        } catch (error) {
+            console.error('Error in createClient store action:', error);
+            return { success: false, message: 'An error occurred while creating the client' };
+        } finally {
+            isLoading.set(false);
         }
+    },
+
+    async updateClient(clientId: string, clientData: any) {
+        isLoading.set(true);
+        try {
+            const result = await ClientService.updateClient(clientId, clientData);
+            if (result.success) {
+                // Set loading to false before calling fetchClients to avoid race condition
+                isLoading.set(false);
+                // Refresh the client list after successful update
+                await this.fetchClients();
+                // Refresh the selected client data
+                await this.getClientById(clientId);
+                return result;
+            }
+            return result;
+        } catch (error) {
+            console.error('Error in updateClient store action:', error);
+            return { success: false, message: 'An error occurred while updating the client' };
+        } finally {
+            isLoading.set(false);
+        }
+    },
+
+    async verifyClient(clientId: string, isAdminVerified: boolean) {
+        try {
+            const result = await ClientService.verifyClient(clientId, isAdminVerified);
+            if (result.success) {
+                await this.getClientById(clientId);
+                await this.fetchClients();
+            }
+            return result;
+        } catch (error) {
+            console.error('Error in verifyClient store action:', error);
+            return { success: false, message: 'An error occurred while verifying the client' };
+        }
+    },
+
+    async uploadProfilePicture(clientId: string, file: File) {
+        try {
+            const result = await ClientService.uploadProfilePicture(clientId, file);
+            if (result.success) {
+                // Refresh the selected client data to get updated profile picture
+                await this.getClientById(clientId);
+                // Also refresh the client list to update the profile picture there
+                await this.fetchClients();
+            }
+            return result;
+        } catch (error) {
+            console.error('Error in uploadProfilePicture store action:', error);
+            return { success: false, message: 'An error occurred while uploading the profile picture' };
+        }
+    },
+
+    async fetchClients(page?: number, size?: number, search?: string) {
+        // Remove the loading guard or make it more specific
+        // if (get(isLoading)) {
+        //     console.log('Already fetching clients, skipping request');
+        //     return;
+        // }
         
         isLoading.set(true);
         try {
@@ -113,66 +203,6 @@ export const clientActions = {
         await this.fetchClients();
     },
 
-    // async getApplicantById(candidateId: number): Promise<AppliedCandidate | null> {
-    //     isLoading.set(true);
-    //     try {
-    //         const client = get(selectedClient);
-    //         if (!client?.data?.applied_candidates) {
-    //             console.log('No client data or applied candidates available');
-    //             return null;
-    //         }
-    //         const candidate = client.data.applied_candidates.find(c => c.candidate_id === candidateId);
-    //         return candidate || null;
-    //     } catch (error) {
-    //         console.error('Error in getApplicantById:', error);
-    //         return null;
-    //     } finally {
-    //         isLoading.set(false);
-    //     }
-    // },
-    // async getClientById(id: number) {
-    //     isLoading.set(true);
-    //     try {
-    //         // First check if we already have the client in our store
-    //         const allClientsData = get(allClients);
-    //         let client = allClientsData.find(c => c.id === id);
-            
-    //         // If not found in store, try to fetch from API
-    //         if (!client) {
-    //             // If there's no endpoint, fetch all clients and then find the one we need
-    //             if (allClientsData.length === 0) {
-    //                 await this.fetchClients(); // Fetch with larger limit to increase chances of finding the client
-    //                 const refreshedClients = get(allClients);
-    //                 client = refreshedClients.find(c => c.id === id);
-    //             }
-    //         }
-            
-    //         selectedClient.set(client || null);
-    //         return client || null;
-    //     } catch (error) {
-    //         console.error('Error in getClientById:', error);
-    //         return null;
-    //     } finally {
-    //         isLoading.set(false);
-    //     }
-    // },
-    
-    // async approveClient(id: number) {
-    //     isLoading.set(true);
-    //     try {
-    //         const success = await ClientService.approveClient(id);
-    //         if (success) {
-    //             // Refresh the client list after approval
-    //             await this.fetchClients(currentPage.get());
-    //         }
-    //         return success;
-    //     } catch (error) {
-    //         console.error('Error in approveClient:', error);
-    //         return false;
-    //     } finally {
-    //         isLoading.set(false);
-    //     }
-    // }
 
     async getClientById(id: string) {
         isLoading.set(true);
@@ -365,5 +395,28 @@ export const clientActions = {
         } finally {
             contactsLoading.set(false);
         }
+    },
+
+    async getClientInvoices(params: ClientInvoicesRequest) {
+    invoicesLoading.set(true);
+    try {
+        const response = await ClientService.getClientInvoices(params);
+        if (response && response.success) {
+            clientInvoices.set(response.data.clientInvoices);
+            invoicesTotalCount.set(response.data.totalCount);
+            invoicesCurrentPage.set(response.data.pageNumber);
+            invoicesPageSize.set(response.data.pageSize);
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error in getClientInvoices:', error);
+        clientInvoices.set([]);
+        return null;
+    } finally {
+        invoicesLoading.set(false);
     }
+}
 };
+
+

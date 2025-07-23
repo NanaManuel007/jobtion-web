@@ -106,63 +106,6 @@ let showTMSDialog = $state(false);
 });
 
 
-// $effect(() => {
-//     // Create a local variable to track if we need to update
-//     const searchLower = searchQuery.toLowerCase();
-//     const jobTypeFilter = selectedJobType;
-//     const statusFilter = selectedStatus;
-//     const page = currentPage;
-    
-//     // Add a check to ensure appliedCandidate exists and is an array
-//     if (!appliedCandidate || !Array.isArray(appliedCandidate)) {
-//         filteredJobs = [];
-//         totalPages = 1;
-//         return;
-//     }
-    
-//     console.log("Filtering applied candidates:", appliedCandidate);
-    
-//     const filtered = appliedCandidate.filter(candidate => {
-//         // Safely handle null/undefined values in search
-//         const jobTitle = candidate?.job_title?.toLowerCase() || '';
-//         const companyName = candidate?.company_name?.toLowerCase() || '';
-        
-//         const matchesSearch = jobTitle.includes(searchLower) || companyName.includes(searchLower);
-        
-//         // Safely handle null/undefined values in filters
-//         const jobType = candidate?.job_type || '';
-//         const status = candidate?.status || '';
-        
-//         const matchesJobType = jobTypeFilter === 'all' || jobType === jobTypeFilter;
-//         const matchesStatus = statusFilter === 'all' || status === statusFilter;
-        
-//         return matchesSearch && matchesJobType && matchesStatus;
-//     });
-
-//     const newTotalPages = Math.ceil(filtered.length / itemsPerPage);
-    
-//     // Only update if necessary
-//     if (totalPages !== newTotalPages) {
-//         totalPages = newTotalPages;
-//     }
-    
-//     // Ensure current page is valid
-//     const validPage = Math.min(Math.max(1, page), Math.max(1, newTotalPages));
-//     if (currentPage !== validPage && newTotalPages > 0) {
-//         currentPage = validPage;
-//     }
-    
-//     // Calculate slice indexes
-//     const startIndex = (validPage - 1) * itemsPerPage;
-//     const endIndex = validPage * itemsPerPage;
-    
-//     // Update filteredJobs with the new slice
-//     filteredJobs = filtered.slice(startIndex, endIndex);
-    
-//     console.log("Filtered jobs:", filteredJobs);
-// });
-    
-
 function goToPage(page: number) {
         currentPage = Math.min(Math.max(1, page), totalPages);
     }

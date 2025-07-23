@@ -1,5 +1,6 @@
 <script lang="ts">
     import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
     import { clients, selectedClient, isLoading, clientActions } from '$lib/services/client_services/client.store';
     import AddJobDialog from './add_job_jobs_added/AddJobDialog.svelte';
     import AssignedCandidates from './assigned_candidate/AssignedCandidates.svelte';
@@ -8,14 +9,17 @@
     import PendingApprovals from './pending_approvals/PendingApprovals.svelte';
     import { onMount } from 'svelte';
     import { fly } from 'svelte/transition';
+	import ClientInvoicesTab from './ClientInvoicesTab.svelte';
 
     let mounted = false;
     let showAddJobDialog = false;
-    let activeTab = 'company';
     let fetchError = false;
 
-    // Get client ID from URL params and ensure it's a number
+    // Get client ID from URL params and ensure it's a string
     $: clientId = $page.params.id || '';
+    
+    // Get active tab from URL params, default to 'company'
+    $: activeTab = $page.url.searchParams.get('tab') || 'company';
     
     async function fetchClient() {
         try {
@@ -29,6 +33,12 @@
         }
     }
     
+    function changeTab(tabId: string) {
+        const url = new URL($page.url);
+        url.searchParams.set('tab', tabId);
+        goto(url.toString(), { replaceState: true, noScroll: true });
+    }
+    
     onMount(async () => {
         mounted = true;
         await fetchClient();
@@ -38,7 +48,7 @@
     const tabs = [
         { id: 'company', label: 'Company Details', icon: 'business' },
         { id: 'jobs', label: 'Jobs Added', icon: 'work' },
-        { id: 'candidates', label: 'Assigned Candidates', icon: 'people' },
+        { id: 'candidates', label: 'Reports', icon: 'people' },
         { id: 'approvals', label: 'Pending Approvals', icon: 'pending_actions' }
     ];
 
@@ -62,7 +72,7 @@
                 <button
                     class="w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-colors overflow-hidden
                            {activeTab === tab.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}"
-                    on:click={() => activeTab = tab.id}
+                    on:click={() => changeTab(tab.id)}
                 >
                     <span class="material-icons-sharp flex-shrink-0">{tab.icon}</span>
                     <span class="truncate">{tab.label}</span>
@@ -99,7 +109,7 @@
                     {:else if activeTab === 'jobs'}
                         <JobsAddedTab client={$selectedClient} />
                     {:else if activeTab === 'candidates'}
-                        <AssignedCandidates client = {$selectedClient}/>
+                        <ClientInvoicesTab client = {$selectedClient}/>
                     {:else if activeTab === 'approvals'}
                         <PendingApprovals client = {$selectedClient} />
                     {/if}

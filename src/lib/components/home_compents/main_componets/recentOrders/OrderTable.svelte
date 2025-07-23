@@ -6,6 +6,7 @@
 	import type { Application } from '$lib/services/application_services/application.types';
     import Dialog from '../../../general_components/Dialog.svelte';
     import Toast from '../../../general_components/Toast.svelte';
+	import { API_CONFIG } from '$lib/services/api';
     let selectedApplication = $state<Application | null>(null);
         let applications = $state<Application[]>([]);
     let mounted = $state(false);
@@ -16,7 +17,8 @@
         try {
             await applicationStore.fetchApplications();
             applications = $applicationStore.applications
-                .filter(app => app.status === "pending")
+                .filter(app => app.status === "applied").
+                filter(app => app.candidate.firstName !=="[Deleted]")
                 .slice(0, 6);
             mounted = true;
         } finally {
@@ -73,7 +75,7 @@
         if (selectedApplication) {
             try {
                 await applicationStore.declineApplication(selectedApplication.id);
-                showSuccessToast(`Successfully declined ${selectedApplication.first_name} ${selectedApplication.last_name}'s application`);
+                showSuccessToast(`Successfully declined ${selectedApplication.candidate.firstName} ${selectedApplication.candidate.lastName}'s application`);
                 showDeclineDialog = false;
                 selectedApplication = null;
                 // Reload the table
@@ -96,7 +98,7 @@
         onClose={() => showAcceptDialog = false}
     >
         <p class="text-gray-600">
-            Are you sure you want to accept {selectedApplication.first_name} {selectedApplication.last_name} for the {selectedApplication.job_title} role at {selectedApplication.company_name}?
+            Are you sure you want to accept {selectedApplication.candidate.firstName} {selectedApplication.candidate.lastName} for the {selectedApplication.jobTitle} role at {selectedApplication.companyName}?
         </p>
         
         <svelte:fragment slot="actions">
@@ -129,7 +131,7 @@
         onClose={() => showDeclineDialog = false}
     >
         <p class="text-gray-600">
-            Are you sure you want to decline {selectedApplication.first_name} {selectedApplication.last_name} for the {selectedApplication.job_title} role at {selectedApplication.company_name}?
+            Are you sure you want to decline {selectedApplication.candidate.firstName} {selectedApplication.candidate.lastName} for the {selectedApplication.jobTitle} role at {selectedApplication.companyName}?
         </p>
         
         <svelte:fragment slot="actions">
@@ -150,7 +152,7 @@
 {/if}
 {#if mounted}
 <div class="pt-10">
-    <h2 class="text-lg font-semibold mb-4">Incoming Bookings</h2>
+    <h2 class="text-lg font-semibold mb-4">Incoming Permanent Applications</h2>
     <main class="bg-white rounded-2xl shadow-[0_2rem_3rem_rgba(132,139,200,0.18)] transition-all duration-300" in:fade={{ duration: 1000 }}>
         
         <section class="w-full overflow-hidden">
@@ -175,17 +177,17 @@
                                         <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                                     
                                             <img class= "w-16 h-16 rounded-full object-cover "
-                                            src={order.profile_picture !==null ?"https://node.jobtiondevs.com/"+order.profile_picture : 
-                                            '/user_images/default.jpg'} alt={`${order.first_name}`} >
+                                            src={order.candidate.profilePictureUrl !==null ? API_CONFIG.IMAGE_URL +order.candidate.profilePictureUrl : 
+                                            '/user_images/default.jpg'} alt={`${order.candidate.firstName}`} >
                                                 <!-- <img src={order.userImage} alt={order.userName} class="w-full h-full object-cover"> -->
                                             
                                         </div>
-                                        <span class="font-medium">{order.first_name}</span>
+                                        <span class="font-medium">{order.candidate.firstName}</span>
                                     </div>
                                 </td>
-                                <td class="p-4">{order.job_title}</td>
-                                <td class="p-4">{order.company_name}</td>
-                                <td class="p-4">{order.job_type}</td>
+                                <td class="p-4">{order.jobTitle}</td>
+                                <td class="p-4">{order.companyName}</td>
+                                <td class="p-4">{order.jobType}</td>
                                 <td class="hidden sm:table-cell">
                                   <div class="flex justify-center gap-4">
                                     <button

@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { JobService } from './job.services';
-import type { BookJob, JobData, JobResponse, PermanentJobAPI, PermanentJobCreateRequest } from './job.type';
+import type { BookJob, InternalJobAPI, InternalJobCreateRequest, InternalJobUpdateRequest, JobData, JobResponse, PermanentJobAPI, PermanentJobCreateRequest } from './job.type';
 
 export const jobs = writable<JobResponse[]>([]);
 export const isJobsLoading = writable(false);
@@ -10,6 +10,16 @@ export const bookingError = writable<string | null>(null);
 export const permanentJobs = writable<PermanentJobAPI[]>([]);
 export const isPermanentJobsLoading = writable(false);
 export const permanentJobsPagination = writable({
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0
+});
+
+// Add internal jobs stores
+export const internalJobs = writable<InternalJobAPI[]>([]);
+export const isInternalJobsLoading = writable(false);
+export const internalJobsPagination = writable({
     currentPage: 1,
     pageSize: 10,
     totalCount: 0,
@@ -127,6 +137,42 @@ export const jobActions = {
         await jobActions.getPermanentJobs(1, 10, job.clientId);
     },
 
+    async getInternalJobs(clientId: string, page: number = 1, pageSize: number = 10, searchTerm?: string) {
+    isInternalJobsLoading.set(true);
+    try {
+        const response = await JobService.getInternalJobs(clientId, page, pageSize, searchTerm);
+        if (response && response.success) {
+            internalJobs.set(response.data.jobs);
+            internalJobsPagination.set({
+                currentPage: response.data.currentPage,
+                pageSize: response.data.pageSize,
+                totalCount: response.data.totalCount,
+                totalPages: response.data.totalPages
+            });
+        }
+    } catch (error) {
+        console.error('Failed to refresh internal jobs:', error);
+        internalJobs.set([]);
+    } finally {
+        isInternalJobsLoading.set(false);
+    }
+},
+
+async addInternalJob(job: InternalJobCreateRequest, clientId: string) {
+    await JobService.createInternalJob(job, clientId);
+    await jobActions.getInternalJobs(clientId, 1, 10);
+},
+
+async updateInternalJob(jobId: string, job: InternalJobUpdateRequest, clientId: string) {
+    await JobService.updateInternalJob(jobId, job);
+    await jobActions.getInternalJobs(clientId, 1, 10);
+},
+
+async deleteInternalJob(jobId: string, clientId: string) {
+    await JobService.deleteInternalJob(jobId);
+    await jobActions.getInternalJobs(clientId, 1, 10);
+}
+
     // async updatePermanentJob(jobId: string, job: PermanentJobCreateRequest) {
     //     await JobService.updatePermanentJob(jobId, job);
     //     await jobActions.getPermanentJobs(1, 10, job.clientId);
@@ -147,3 +193,6 @@ export const jobActions = {
     //     }
     // }
 };
+
+
+// Updated internal job actions with search support

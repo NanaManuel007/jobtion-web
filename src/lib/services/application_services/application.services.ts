@@ -1,38 +1,45 @@
 // services 
-import  type { Application } from './application.types';
+import type { Application, ApplicationListResponse, ApplicationQueryParams } from './application.types';
 import { API_CONFIG, getApiUrl } from '../api';
 
 export class ApplicationService {
-    static async getAllApplications(): Promise<Application[]> {
+    static async getAllApplications(params: ApplicationQueryParams = {}): Promise<ApplicationListResponse> {
         try {
             const token = localStorage.getItem('access_token');
             
             if (!token) {
                 console.error('No access token found');
-                return [];
+                throw new Error('No access token found');
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.JOBS.GETAPPLICATIONS)}`, {
+            // Build query parameters
+            const queryParams = new URLSearchParams();
+            if (params.page) queryParams.append('page', params.page.toString());
+            if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+            if (params.status) queryParams.append('status', params.status);
+            if (params.search) queryParams.append('search', params.search);
+            
+            const url = `${getApiUrl(API_CONFIG.ENDPOINTS.JOBS.GETAPPLICATIONS)}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+            
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
+            
             if (!response.ok) {
-                throw new Error('Failed to fetch clients');
+                throw new Error('Failed to fetch applications');
             }
             
             const data = await response.json();
-            console.log("user data  fetch", data.data)
-            if (data.success && Array.isArray(data.data)) {
-                return data.data;
-            }
+            console.log("applications data fetch", data);
             
-            return [];
+            return data;
         } catch (error) {
-            console.error('Error fetching clients:', error);
-            return [];
+            console.error('Error fetching applications:', error);
+            throw error;
         }
     }
 

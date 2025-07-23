@@ -17,7 +17,6 @@
     
     // Reactive statement to handle search
     $: if (mounted && localSearchTerm !== previousSearchTerm) {
-        console.log('Search triggered:', localSearchTerm);
         previousSearchTerm = localSearchTerm;
         clientActions.search(localSearchTerm);
     }

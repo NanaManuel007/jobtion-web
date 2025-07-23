@@ -19,6 +19,7 @@
     let showContactModal = $state(false);
     let editingContact: ClientContact | null = $state(null);
     let isSavingContact = $state(false);
+    let isVerifying = $state(false);
     
     // Toast state
     let showToast = $state(false);
@@ -327,6 +328,29 @@
         showContactModal = false;
         resetContactForm();
     }
+    
+    async function verifyClient() {
+        isVerifying = true;
+        try {
+            const result = await clientActions.verifyClient(client.id, true);
+            if (result.success) {
+                toastType = 'success';
+                toastMessage = 'Client verified successfully';
+                showToast = true;
+            } else {
+                toastType = 'error';
+                toastMessage = result.message || 'Failed to verify client';
+                showToast = true;
+            }
+        } catch (error) {
+            console.error('Error verifying client:', error);
+            toastType = 'error';
+            toastMessage = 'An error occurred while verifying the client';
+            showToast = true;
+        } finally {
+            isVerifying = false;
+        }
+    }
 </script>
 
 <AddNewClient
@@ -358,10 +382,25 @@
                 </button>
             </div>
         </div>
-        <div class="ml-auto">
+        <div class="ml-auto flex items-center gap-3">
             <span class="px-4 py-2 rounded-full {getStatusColor(client_detail?.adminVerification === true ? 1 : 0)} font-medium">
                 {client_detail?.adminVerification === true ? 'Verified' : 'Unverified'}
             </span>
+            {#if !client_detail?.adminVerification}
+                <button
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    onclick={verifyClient}
+                    disabled={isVerifying}
+                >
+                    {#if isVerifying}
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Verifying...
+                    {:else}
+                        <span class="material-icons-sharp text-sm">verified</span>
+                        Verify Client
+                    {/if}
+                </button>
+            {/if}
         </div>
     </div>
 
@@ -441,13 +480,31 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="material-icons-sharp text-gray-600">verified</span>
-                        <div>
+                        <div class="flex-1">
                             <p class="text-sm text-gray-500">Verification Status</p>
-                            <p class="text-gray-800 font-medium capitalize">{client_detail?.adminVerification === true ? 'Verified' : 'Unverified'}</p>
+                            <div class="flex items-center gap-3">
+                                <p class="text-gray-800 font-medium capitalize">{client_detail?.adminVerification === true ? 'Verified' : 'Unverified'}</p>
+                                {#if !client_detail?.adminVerification}
+                                    <button
+                                        class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                        onclick={verifyClient}
+                                        disabled={isVerifying}
+                                    >
+                                        {#if isVerifying}
+                                            <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                            Verifying...
+                                        {:else}
+                                            <span class="material-icons-sharp text-xs">verified</span>
+                                            Verify
+                                        {/if}
+                                    </button>
+                                {/if}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
 
             <!-- Statistics -->
             <div class="col-span-2 space-y-6 p-6 bg-gray-50 rounded-xl">

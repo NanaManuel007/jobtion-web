@@ -269,6 +269,44 @@ export interface ClientContactsResponse {
     data: ClientContactsData;
 }
 
+export interface ClientCreateRequest {
+    companyName: string;
+    ceoFirstName: string;
+    ceoLastName: string;
+    companyJobTitle: string;
+    email: string;
+    password: string;
+    phoneNumber: string;
+    address: string;
+    companyHouseNumber: string;
+    pronouns: string;
+    title: string;
+    otherName: string;
+    aboutCompany: string;
+    website: string;
+    postcode: string;
+    latitude: number;
+    longitude: number;
+}
+
+export interface ClientUpdateRequest {
+    pronouns: string;
+    title: string;
+    companyName: string;
+    ceoFirstName: string;
+    ceoLastName: string;
+    otherName: string;
+    companyJobTitle: string;
+    phoneNumber: string;
+    address: string;
+    aboutCompany: string;
+    companyHouseNumber: string;
+    website: string;
+    postcode: string;
+    latitude: number;
+    longitude: number;
+}
+
 export interface ClientContactCreateRequest {
     division: string;
     forename: string;
@@ -289,5 +327,68 @@ export interface ClientContactUpdateRequest {
     workTel: string;
     mobileTel: string;
     email: string;
+}
+
+export interface ClientInvoice {
+    id: string;
+    weeklyTimesheetId: string;
+    byOurRef: string;
+    companyName: string;
+    fullAddress: string;
+    slotStart: string;
+    sageName: string;
+    candidateID: string;
+    tempName: string;
+    jobTitle: string;
+    payeeSelfEmp: string;
+    rate: number;
+    charge: number;
+    tsPay: number;
+    candidateGrossPay: number;
+    margin: number;
+    totalInvoice: number;
+    payRollProvider: string;
+    poNumber: string;
+    owner: string;
+    notes: string;
+    totalHours: number;
+    taxAmount: number;
+    vatAmount: number;
+    clientTotalBeforeVAT: number;
+    isClientPaid: boolean;
+    isAdminReceivedPayment: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ClientInvoiceGroup {
+    companyName: string;
+    invoices: ClientInvoice[];
+    totalAmount: number;
+    totalVAT: number;
+    grandTotal: number;
+    totalJobs: number;
+}
+
+export interface ClientInvoicesResponse {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        clientInvoices: ClientInvoiceGroup[];
+        totalCount: number;
+        pageNumber: number;
+        pageSize: number;
+    };
+}
+
+export interface ClientInvoicesRequest {
+    pageNumber?: number;
+    pageSize?: number;
+    fromDate?: string;
+    toDate?: string;
+    clientId: string;
 }
 
