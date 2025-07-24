@@ -39,7 +39,6 @@ export interface Approval {
     tsmData?: TSM;
 }
 
-
 export interface TSMUpdatePayload {
     tsm_id: number;
     start: string;
@@ -49,6 +48,82 @@ export interface TSMUpdatePayload {
     location:string;
 }
 
+// Updated interface to match the new API response
+export interface InvoiceEntry {
+    id: string;
+    weeklyTimesheetId: string;
+    byOurRef: string;
+    companyName: string;
+    fullAddress: string;
+    slotStart: string;
+    sageName: string;
+    candidateID: string;
+    tempName: string;
+    jobTitle: string;
+    payeeSelfEmp: string;
+    rate: number;
+    charge: number;
+    tsPay: number;
+    candidateGrossPay: number;
+    margin: number;
+    totalInvoice: number;
+    payRollProvider: string;
+    poNumber: string | null;
+    owner: string | null;
+    notes: string | null;
+    totalHours: number;
+    taxAmount: number;
+    vatAmount: number;
+    clientTotalBeforeVAT: number;
+    createdAt: string;
+    updatedAt: string | null;
+    isInvoiceGeneratedToClient: boolean;
+    isClientPaid: boolean;
+    isCandidatePaid: boolean;
+    isTotalInvoiceGenerated: boolean;
+}
+
+// Updated response interface for the new API structure
+// Add pagination parameters interface
+export interface PaginationParams {
+    page?: number;
+    pageSize?: number;
+    fromDate?: string; // Date in ISO format like "2025-07-24T18:58:44.182Z"
+    toDate?: string;   // Date in ISO format like "2025-07-24T18:58:44.182Z"
+    isInvoiceGeneratedToClient?: boolean; // Filter by invoice generation status, defaults to false
+}
+
+// Add pagination metadata interface
+export interface PaginationMeta {
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}
+
+// Update InvoiceResponse to include pagination metadata
+export interface InvoiceResponse {
+    data: {
+        invoices: InvoiceEntry[];
+        totalCount: number;
+        page: number;
+        pageSize: number;
+        totalPages: number;
+    };
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: any;
+    timestamp: string;
+}
+
+// Add response wrapper for paginated invoice data
+export interface PaginatedInvoiceResponse {
+    invoices: InvoiceEntry[];
+    pagination: PaginationMeta;
+}
+
+// Keep the old TimesheetEntry for backward compatibility if needed
 export interface TimesheetEntry {
     byOurRef?: string;
     CompanyName?: string;
@@ -70,9 +145,9 @@ export interface TimesheetEntry {
     PONumber?: string | null;
     Owner?: string;
     Notes?: string;
-  }
+}
 
-  interface ReportRequestBody {
+interface ReportRequestBody {
     start_date: string;
     end_date: string;
 }
@@ -126,6 +201,65 @@ interface ReportResponse {
         summary: ReportSummary;
         payroll_records: PayrollRecord[];
     };
+}
+
+// Add new interfaces for candidate payslips
+// Updated interfaces for candidate payslips to match new API structure
+export interface PayslipEntry {
+    id: string;
+    candidateId: string;
+    weeklyTimesheetIds: string;
+    payslipReference: string;
+    companyNames: string;
+    jobTitles: string;
+    weekEnding: string;
+    totalHours: number;
+    rate: number;
+    grossPay: number;
+    taxAmount: number;
+    netPay: number;
+    cumulativeGrossPay: number;
+    cumulativeTaxPaid: number;
+    cumulativeNetPay: number;
+    createdAt: string;
+    firstName: string;
+    lastName: string;
+    profilePictureUrl: string;
+}
+
+export interface GroupedPayslip {
+    completedDate: string;
+    candidateId: string;
+    firstName: string;
+    lastName: string;
+    profilePictureUrl: string;
+    payslips: PayslipEntry[];
+    totalGrossPay: number;
+    totalTaxAmount: number;
+    totalNetPay: number;
+    totalHours: number;
+    payslipCount: number;
+}
+
+export interface PayslipResponse {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: {
+        candidatePayslips: GroupedPayslip[];
+        totalCount: number;
+        pageNumber: number;
+        pageSize: number;
+    };
+}
+
+export interface PayslipPaginationParams {
+    pageNumber?: number;
+    pageSize?: number;
+    fromDate?: string;
+    toDate?: string;
 }
 
 export type { ReportRequestBody, ReportResponse, PayrollRecord, ReportSummary };

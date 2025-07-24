@@ -1,5 +1,5 @@
 import { API_CONFIG, getApiUrl } from '$lib/services/api';
-import type { TimesheetEntry, TSM, TSMUpdatePayload } from './job.tsm.types';
+import type { TSM, Approval, TSMUpdatePayload, InvoiceEntry, PaginationParams, PaginatedInvoiceResponse, PayslipResponse, PayslipPaginationParams, GroupedPayslip, PaginationMeta } from './job.tsm.types';
 import { writable } from 'svelte/store';
 import { TSMService } from './job.tsm.services';
 
@@ -8,7 +8,23 @@ export const tsms = writable<TSM[]>([]);
 export const isLoading = writable<boolean>(false);
 export const error = writable<string | null>(null);
 export const selectedTSM = writable<TSM | null>(null);
-export const reports = writable<TimesheetEntry[]>([]);
+// Update store to use InvoiceEntry instead of TimesheetEntry
+export const reports = writable<InvoiceEntry[]>([]);
+export const reportsPagination = writable<PaginationMeta>({
+    totalCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0
+});
+
+export const candidatePayslips = writable<GroupedPayslip[]>([]);
+export const payslipsPagination = writable({
+    totalCount: 0,
+    pageNumber: 1,
+    pageSize: 10
+});
+export const isLoadingPayslips = writable(false);
+export const payslipsError = writable<string | null>(null);
 // TSM Store Actions
 export const tsmActions = {
     async fetchAllTSMs() {
@@ -25,6 +41,33 @@ export const tsmActions = {
             console.error('Error fetching TSMs:', err);
         } finally {
             isLoading.set(false);
+        }
+    },
+
+    async fetchCandidatePayslips(params: PayslipPaginationParams = {}) {
+        isLoadingPayslips.set(true);
+        payslipsError.set(null);
+        
+        try {
+            const response = await TSMService.getCandidatePayslips(params);
+            
+            if (response.success) {
+                // Fix: Use candidatePayslips instead of groupedPayslips
+                candidatePayslips.set(response.data.candidatePayslips);
+                payslipsPagination.set({
+                    totalCount: response.data.totalCount,
+                    pageNumber: response.data.pageNumber,
+                    pageSize: response.data.pageSize
+                });
+            } else {
+                throw new Error('Failed to fetch candidate payslips');
+            }
+        } catch (error) {
+            console.error('Error fetching candidate payslips:', error);
+            payslipsError.set(error instanceof Error ? error.message : 'Unknown error occurred');
+            candidatePayslips.set([]);
+        } finally {
+            isLoadingPayslips.set(false);
         }
     },
     
@@ -118,14 +161,36 @@ export const tsmActions = {
 
     // get report store
 
-    async fetchReport() {
+    // Updated fetchReport method to support pagination
+    // async fetchReport(params: PaginationParams = {}) {
+    //     isLoading.set(true);
+    //     error.set(null);
+        
+    //     try {
+    //         const data = await TSMService.getReport(params);
+    //         console.log('Report data received:', data);
+    //         reports.set(data.invoices);
+    //         reportsPagination.set(data.pagination);
+    //         return true;
+    //     } catch (err) {
+    //         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch report';
+    //         error.set(errorMessage);
+    //         console.error('Error fetching report:', err);
+    //         return false;
+    //     } finally {
+    //         isLoading.set(false);
+    //     }
+    // },
+    // Updated fetchReport method to support date filtering
+    async fetchReport(params: PaginationParams = {}) {
         isLoading.set(true);
         error.set(null);
         
         try {
-            const data = await TSMService.getReport();
+            const data = await TSMService.getReport(params);
             console.log('Report data received:', data);
-            reports.set(data);
+            reports.set(data.invoices);
+            reportsPagination.set(data.pagination);
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch report';
