@@ -11,7 +11,7 @@
     import { CandidateService } from '$lib/services/candidate_services/candidate.services';
 
     export let isOpen = false;
-    export let clientId: string;
+    export let clientId: string = ''; // Make clientId optional with default empty string
 
     const dispatch = createEventDispatcher();
 
@@ -121,11 +121,21 @@
     async function loadInternalJobs() {
         jobsLoading = true;
         try {
-            const response = await JobService.getInternalJobs(clientId, jobsPage, 10);
+            let response;
+            
+            // Use different service methods based on whether clientId is provided
+            if (clientId && clientId.trim() !== '') {
+                // Client-specific jobs for regular client context
+                response = await JobService.getInternalJobs(clientId, jobsPage, 10);
+            } else {
+                // All internal jobs for approval context
+                response = await JobService.getAllInternalJobs(jobsPage, 10, jobSearchTerm.trim() || undefined);
+            }
+            
             let jobList = response.data?.jobs || [];
             
-            // Apply search filter if search term exists
-            if (jobSearchTerm.trim()) {
+            // Apply search filter if search term exists and we're using client-specific method
+            if (jobSearchTerm.trim() && clientId && clientId.trim() !== '') {
                 jobList = jobList.filter(job => 
                     job.jobTitle.toLowerCase().includes(jobSearchTerm.toLowerCase()) ||
                     job.jobLocation.toLowerCase().includes(jobSearchTerm.toLowerCase()) ||

@@ -81,10 +81,10 @@ const createApplicationStore = () => {
         filterByStatus: async (status: string) => {
             fetchApplications({ status, page: 1 });
         },
-        acceptApplication: async (applicationId: number) => {
+        acceptApplication: async (applicationId: string, clientId: string) => {
             update(state => ({ ...state, loading: true, error: null }));
             try {
-                const success = await ApplicationService.acceptApplication(applicationId);
+                const success = await ApplicationService.updateApplicationStatus(applicationId, clientId, 'accepted');
                 if (success) {
                     await fetchApplications();
                 } else {
@@ -98,10 +98,10 @@ const createApplicationStore = () => {
                 }));
             }
         },
-        declineApplication: async (applicationId: number) => {
+        declineApplication: async (applicationId: string, clientId: string, rejectionReason?: string) => {
             update(state => ({ ...state, loading: true, error: null }));
             try {
-                const success = await ApplicationService.declineApplication(applicationId);
+                const success = await ApplicationService.updateApplicationStatus(applicationId, clientId, 'rejected', rejectionReason);
                 if (success) {
                     await fetchApplications();
                 } else {
@@ -115,10 +115,17 @@ const createApplicationStore = () => {
                 }));
             }
         },
-        setInterview: async (applicationId: number, interviewDetails: { interview_date: string, interview_time: string, interview_by: string, interview_link: string }) => {
+        setInterview: async (applicationId: string, clientId:string, interviewDetails: { 
+            interviewDate: string, 
+            interviewTime: string, 
+            interviewLocation: string,
+            interviewInviteLink: string,
+            interviewBy: string,
+            interviewNotes: string 
+        }) => {
             update(state => ({ ...state, loading: true, error: null }));
             try {
-                const success = await ApplicationService.setInterview(applicationId, interviewDetails);
+                const success = await ApplicationService.setInterview(applicationId,clientId, interviewDetails);
                 if (success) {
                     await fetchApplications();
                 } else {

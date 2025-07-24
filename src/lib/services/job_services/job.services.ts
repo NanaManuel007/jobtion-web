@@ -336,6 +336,72 @@ async getInternalJobs(clientId: string, page: number = 1, pageSize: number = 10,
     }
 },
 
+async getAllInternalJobs(
+    page: number = 1,
+    pageSize: number = 10,
+    searchTerm?: string
+): Promise<InternalJobsResponse> {
+    let url = `internal-jobs?page=${page}&pageSize=${pageSize}`;
+    
+    // Add search parameter if provided
+    if (searchTerm && searchTerm.trim()) {
+        url += `&searchTerm=${encodeURIComponent(searchTerm.trim())}`;
+    }
+    
+    const fullUrl = getApiUrl(url);
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+        throw new Error('No access token found');
+    }
+
+    try {
+        console.log('Fetching internal jobs from URL:', fullUrl);
+        
+        const response = await fetch(fullUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response text:', errorText);
+            throw new Error('Failed to fetch internal jobs');
+        }
+
+        const apiResponse = await response.json();
+        console.log('Incoming response data:', JSON.stringify(apiResponse, null, 2));
+        
+        // Transform the API response to match the expected InternalJobsResponse format
+        const transformedResponse: InternalJobsResponse = {
+            success: true,
+            statusCode: 200,
+            responseBody: 'Success',
+            errors: '',
+            timestamp: new Date().toISOString(),
+            data: {
+                jobs: apiResponse.jobs || [],
+                currentPage: page,
+                pageSize: pageSize,
+                // Fix: Use the actual total count from API response
+                totalCount: apiResponse.totalCount || apiResponse.total || 0,
+                totalPages: Math.ceil((apiResponse.totalCount || apiResponse.total || 0) / pageSize)
+            }
+        };
+        
+        console.log('Transformed response:', transformedResponse);
+        return transformedResponse;
+    } catch (error) {
+        console.error('Error fetching all internal jobs:', error);
+        throw error;
+    }
+},
 async updateInternalJob(jobId: string, job: InternalJobUpdateRequest) {
     const url = getApiUrl(`internal-jobs/${jobId}`);
     const token = localStorage.getItem('access_token');

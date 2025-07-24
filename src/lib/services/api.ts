@@ -47,7 +47,7 @@ export const API_CONFIG = {
             GETAPPLICATIONS: 'applications/admin/all',
             APPROVEAPPLICATION: 'accept',
             DECLINEAPPLICATION: 'decline',
-            SETINTVERVIEW: 'set-interview',
+            SETINTVERVIEW: 'applications',
         },
         INTERNALJOBS:{
             CREATE:'internal-jobs/Clients',

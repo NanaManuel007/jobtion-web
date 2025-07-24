@@ -157,6 +157,27 @@ export const jobActions = {
         isInternalJobsLoading.set(false);
     }
 },
+async getAllInternalJobs(page: number = 1, pageSize: number = 10, searchTerm?: string) {
+        isInternalJobsLoading.set(true);
+        try {
+            const response = await JobService.getAllInternalJobs(page, pageSize, searchTerm);
+            if (response && response.success) {
+                internalJobs.set(response.data.jobs);
+                internalJobsPagination.set({
+                    currentPage: response.data.currentPage,
+                    pageSize: response.data.pageSize,
+                    totalCount: response.data.totalCount,
+                    totalPages: response.data.totalPages
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch all internal jobs:', error);
+            internalJobs.set([]);
+        } finally {
+            isInternalJobsLoading.set(false);
+        }
+    },
+
 
 async addInternalJob(job: InternalJobCreateRequest, clientId: string) {
     await JobService.createInternalJob(job, clientId);
