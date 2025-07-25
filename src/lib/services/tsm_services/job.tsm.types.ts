@@ -263,3 +263,77 @@ export interface PayslipPaginationParams {
 }
 
 export type { ReportRequestBody, ReportResponse, PayrollRecord, ReportSummary };
+
+
+// Client Invoice Types
+export interface ClientInvoiceEntry {
+    id: string;
+    weeklyTimesheetId: string;
+    byOurRef: string;
+    companyName: string;
+    fullAddress: string;
+    slotStart: string;
+    sageName: string;
+    candidateID: string;
+    tempName: string;
+    jobTitle: string;
+    payeeSelfEmp: string;
+    rate: number;
+    charge: number;
+    tsPay: number;
+    candidateGrossPay: number;
+    margin: number;
+    totalInvoice: number;
+    payRollProvider: string;
+    poNumber: string;
+    owner: string;
+    notes: string;
+    totalHours: number;
+    taxAmount: number;
+    vatAmount: number;
+    clientTotalBeforeVAT: number;
+    isClientPaid: boolean;
+    isAdminReceivedPayment: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ClientInvoiceGroup {
+    companyName: string;
+    createdAtSameDateOrganization: string;
+    invoices: ClientInvoiceEntry[];
+    totalAmount: number;
+    totalVAT: number;
+    grandTotal: number;
+    totalJobs: number;
+}
+
+export interface ClientInvoiceResponse {
+    data: {
+        clientInvoices: ClientInvoiceGroup[];
+        totalCount: number;
+        pageNumber: number;
+        pageSize: number;
+    };
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: any;
+    timestamp: string;
+}
+
+export interface ClientInvoicePaginationParams {
+    pageNumber?: number;
+    pageSize?: number;
+    fromDate?: string;
+    toDate?: string;
+}
+
+export interface PaginatedClientInvoiceResponse {
+    clientInvoices: ClientInvoiceGroup[];
+    pagination: {
+        totalCount: number;
+        pageNumber: number;
+        pageSize: number;
+    };
+}

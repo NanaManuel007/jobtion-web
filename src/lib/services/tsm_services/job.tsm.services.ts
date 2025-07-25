@@ -1,5 +1,5 @@
 import { API_CONFIG, getApiUrl } from '$lib/services/api';
-import type { ReportRequestBody, ReportResponse, TimesheetEntry, TSM, TSMUpdatePayload, InvoiceEntry, InvoiceResponse, PaginationParams, PaginatedInvoiceResponse, PayslipResponse, PayslipPaginationParams } from './job.tsm.types';
+import type { ReportRequestBody, ReportResponse, TimesheetEntry, TSM, TSMUpdatePayload, InvoiceEntry, InvoiceResponse, PaginationParams, PaginatedInvoiceResponse, PayslipResponse, PayslipPaginationParams, ClientInvoicePaginationParams, PaginatedClientInvoiceResponse, ClientInvoiceResponse } from './job.tsm.types';
 
 export class TSMService {
     static async getAllTSMs(): Promise<TSM[]> {
@@ -340,4 +340,77 @@ export class TSMService {
         }
     }
 
+    static async getClientInvoices(params: ClientInvoicePaginationParams = {}): Promise<PaginatedClientInvoiceResponse> {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                console.error('No access token found');
+                return {
+                    clientInvoices: [],
+                    pagination: {
+                        totalCount: 0,
+                        pageNumber: 1,
+                        pageSize: 10
+                    }
+                };
+            }
+            
+            // Build query parameters
+            const queryParams = new URLSearchParams();
+            if (params.pageNumber) queryParams.append('pageNumber', params.pageNumber.toString());
+            if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+            if (params.fromDate) queryParams.append('fromDate', params.fromDate);
+            if (params.toDate) queryParams.append('toDate', params.toDate);
+            
+            const url = `${getApiUrl(API_CONFIG.ENDPOINTS.REPORTS.CLIENT_INVOICES)}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch client invoices');
+            }
+            
+            const data: ClientInvoiceResponse = await response.json();
+            
+            if (data.success && Array.isArray(data.data.clientInvoices)) {
+                return {
+                    clientInvoices: data.data.clientInvoices,
+                    pagination: {
+                        totalCount: data.data.totalCount,
+                        pageNumber: data.data.pageNumber,
+                        pageSize: data.data.pageSize
+                    }
+                };
+            }
+            
+            return {
+                clientInvoices: [],
+                pagination: {
+                    totalCount: 0,
+                    pageNumber: 1,
+                    pageSize: 10
+                }
+            };
+        } catch (error) {
+            console.error('Error fetching client invoices:', error);
+            return {
+                clientInvoices: [],
+                pagination: {
+                    totalCount: 0,
+                    pageNumber: 1,
+                    pageSize: 10
+                }
+            };
+        }
+    }
 }

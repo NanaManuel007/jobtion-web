@@ -1,5 +1,5 @@
 import { API_CONFIG, getApiUrl } from '$lib/services/api';
-import type { TSM, Approval, TSMUpdatePayload, InvoiceEntry, PaginationParams, PaginatedInvoiceResponse, PayslipResponse, PayslipPaginationParams, GroupedPayslip, PaginationMeta } from './job.tsm.types';
+import type { TSM, Approval, TSMUpdatePayload, InvoiceEntry, PaginationParams, PaginatedInvoiceResponse, PayslipResponse, PayslipPaginationParams, GroupedPayslip, PaginationMeta, ClientInvoiceGroup, ClientInvoicePaginationParams, PaginatedClientInvoiceResponse } from './job.tsm.types';
 import { writable } from 'svelte/store';
 import { TSMService } from './job.tsm.services';
 
@@ -25,6 +25,31 @@ export const payslipsPagination = writable({
 });
 export const isLoadingPayslips = writable(false);
 export const payslipsError = writable<string | null>(null);
+
+
+export const clientInvoices = writable<ClientInvoiceGroup[]>([]);
+export const clientInvoicesPagination = writable({
+    totalCount: 0,
+    pageNumber: 1,
+    pageSize: 10
+});
+export const isLoadingClientInvoices = writable(false);
+export const clientInvoicesError = writable<string | null>(null);
+
+// export {
+//     clientInvoices,
+//     clientInvoicesPagination,
+//     isLoadingClientInvoices,
+//     clientInvoicesError
+// } from './job.tsm.store';
+
+// Export client invoice actions
+export const clientInvoiceActions = {
+    fetchClientInvoices: async (params = {}) => {
+        const { tsmActions } = await import('./job.tsm.store');
+        return tsmActions.fetchClientInvoices(params);
+    }
+};
 // TSM Store Actions
 export const tsmActions = {
     async fetchAllTSMs() {
@@ -158,6 +183,7 @@ export const tsmActions = {
             isLoading.set(false);
         }
     },
+    
 
     // get report store
 
@@ -199,6 +225,28 @@ export const tsmActions = {
             return false;
         } finally {
             isLoading.set(false);
+        }
+    },
+
+    // Client Invoice Actions
+    async fetchClientInvoices(params: ClientInvoicePaginationParams = {}) {
+        isLoadingClientInvoices.set(true);
+        clientInvoicesError.set(null);
+        
+        try {
+            const response = await TSMService.getClientInvoices(params);
+            
+            clientInvoices.set(response.clientInvoices);
+            clientInvoicesPagination.set(response.pagination);
+            
+            return true;
+        } catch (error) {
+            console.error('Error fetching client invoices:', error);
+            clientInvoicesError.set(error instanceof Error ? error.message : 'Unknown error occurred');
+            clientInvoices.set([]);
+            return false;
+        } finally {
+            isLoadingClientInvoices.set(false);
         }
     }
 };
