@@ -387,7 +387,7 @@ export type WeeklyTimesheetAPI = {
     jobTitle:string;
     candidateLastName:string;
     candidateEmail:string;
-    weeklyStatus: 'pending' | 'completed';
+    weeklyStatus: 'pending' | 'completed' | 'client-requested';
     monday: DayTimesheet;
     tuesday: DayTimesheet;
     wednesday: DayTimesheet;

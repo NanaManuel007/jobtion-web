@@ -16,7 +16,7 @@
     let filteredTimesheets: WeeklyTimesheetAPI[] = [];
     let isTimesheetsLoading = $state(false);
     let timesheetSearchQuery = $state('');
-    let selectedStatus = $state<'pending' | 'completed'>('pending');
+    let selectedStatus = $state<'pending' | 'completed' | 'client-requested'>('pending');
     let currentPage = $state(1);
     let pageSize = $state(10);
     let totalPages = $state(1);
@@ -279,6 +279,7 @@
                     >
                         <option value="pending">Pending</option>
                         <option value="completed">Completed</option>
+                        <option value="client-requested">Client Requested</option>
                     </select>
                 </div>
             </div>

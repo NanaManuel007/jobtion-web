@@ -259,9 +259,18 @@
         
         submitting = true;
         try {
-            await updateTimesheetStatus('completed');
+            // Check if the timesheet is coming from client-requested status
+            const newStatus = timesheet.weeklyStatus === 'client-requested' ? 'pending' : 'completed';
             
-            toastMessage = 'Timesheet approved successfully!';
+            await updateTimesheetStatus(newStatus);
+            
+            // Update toast message based on the action taken
+            if (newStatus === 'pending') {
+                toastMessage = 'Request accepted and moved to pending!';
+            } else {
+                toastMessage = 'Timesheet approved successfully!';
+            }
+            
             toastType = 'success';
             showToast = true;
             
@@ -640,6 +649,38 @@
                             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         {/if}
                         Complete Week
+                    </button>
+                </div>
+                {:else if timesheet.weeklyStatus === 'client-requested'}
+                                
+                <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
+                    <button 
+                        on:click={closeDialog}
+                        class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                    >
+                        Cancel
+                    </button>
+                    
+                    <!-- <button 
+                        on:click={handleReject}
+                        disabled={submitting}
+                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center"
+                    >
+                        {#if submitting}
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {/if}
+                        Reject
+                    </button> -->
+                    
+                    <button 
+                        on:click={handleApprove}
+                        disabled={submitting}
+                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center"
+                    >
+                        {#if submitting}
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {/if}
+                        Accept Request
                     </button>
                 </div>
             {:else}

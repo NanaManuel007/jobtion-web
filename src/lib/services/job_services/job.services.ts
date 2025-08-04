@@ -516,7 +516,7 @@ console.log('Response data:', await response.clone().json());
 async getWeeklyTimesheets(
     page: number = 1,
     pageSize: number = 10,
-    weeklyStatus: 'pending' | 'completed' = 'pending'
+    weeklyStatus: 'pending' | 'completed' | 'client-requested' = 'pending'
 ): Promise<WeeklyTimesheetsResponse> {
     const url = getApiUrl(`internal-jobs/weekly-timesheets?page=${page}&pageSize=${pageSize}&weeklyStatus=${weeklyStatus}`);
     const token = localStorage.getItem('access_token');
