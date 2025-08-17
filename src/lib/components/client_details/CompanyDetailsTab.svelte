@@ -36,12 +36,24 @@
     });
     
     let customFieldsForm = $state({
-        dateTcField: '',
+        // dateTcField: '',
         unqualifiedPartExperienced: 0,
+        unqualifiedPartExperiencedTemporaryCharge: 0,
+        unqualifiedPartExperiencedEnabled: false,
         unqualifiedExperience: 0,
-        childrenLevelTwo: 0,
+        unqualifiedExperienceTemporaryCharge: 0,
+        unqualifiedExperienceEnabled: false,
+        nurseryLevelTwo: 0,
+        nurseryLevelTwoTemporaryCharge: 0,
+        nurseryLevelTwoEnabled: false,
         childrenLevelThree: 0,
+        childrenLevelThreeTemporaryCharge: 0,
+        childrenLevelThreeEnabled: false,
         childrenLevelFourAndUp: 0,
+        childrenLevelFourAndUpTemporaryCharge: 0,
+        childrenLevelFourAndUpEnabled: false,
+        roomLeader: 0,
+        managerAndDeputyManager: 0,
         nurseryChef: 0,
         findersFeeStandard: 0,
         findersFeePermOneToFourWeeks: 0,
@@ -54,7 +66,8 @@
         longTermTeacher: 0,
         longTermStaff: 0,
         longTermTA: 0,
-        longTermSenTA: 0
+        longTermSenTA: 0,
+        hasClientAcceptedContract: false
     });
     
     // Contact form state - updated to match API structure
@@ -131,12 +144,24 @@
     $effect(() => {
         if ($clientCustomFields?.data) {
             customFieldsForm = {
-                dateTcField: $clientCustomFields.data.dateTcField,
+                // dateTcField: $clientCustomFields.data.dateTcField || '',
                 unqualifiedPartExperienced: $clientCustomFields.data.unqualifiedPartExperienced,
+                unqualifiedPartExperiencedTemporaryCharge: $clientCustomFields.data.unqualifiedPartExperiencedTemporaryCharge || 0,
+                unqualifiedPartExperiencedEnabled: $clientCustomFields.data.unqualifiedPartExperiencedEnabled ?? false,
                 unqualifiedExperience: $clientCustomFields.data.unqualifiedExperience,
-                childrenLevelTwo: $clientCustomFields.data.childrenLevelTwo,
+                unqualifiedExperienceTemporaryCharge: $clientCustomFields.data.unqualifiedExperienceTemporaryCharge || 0,
+                unqualifiedExperienceEnabled: $clientCustomFields.data.unqualifiedExperienceEnabled ?? false,
+                nurseryLevelTwo: $clientCustomFields.data.nurseryLevelTwo || 0,
+                nurseryLevelTwoTemporaryCharge: $clientCustomFields.data.nurseryLevelTwoTemporaryCharge || 0,
+                nurseryLevelTwoEnabled: $clientCustomFields.data.nurseryLevelTwoEnabled ?? false,
                 childrenLevelThree: $clientCustomFields.data.childrenLevelThree,
+                childrenLevelThreeTemporaryCharge: $clientCustomFields.data.childrenLevelThreeTemporaryCharge || 0,
+                childrenLevelThreeEnabled: $clientCustomFields.data.childrenLevelThreeEnabled ?? false,
                 childrenLevelFourAndUp: $clientCustomFields.data.childrenLevelFourAndUp,
+                childrenLevelFourAndUpTemporaryCharge: $clientCustomFields.data.childrenLevelFourAndUpTemporaryCharge || 0,
+                childrenLevelFourAndUpEnabled: $clientCustomFields.data.childrenLevelFourAndUpEnabled ?? false,
+                roomLeader: $clientCustomFields.data.roomLeader || 0,
+                managerAndDeputyManager: $clientCustomFields.data.managerAndDeputyManager || 0,
                 nurseryChef: $clientCustomFields.data.nurseryChef,
                 findersFeeStandard: $clientCustomFields.data.findersFeeStandard,
                 findersFeePermOneToFourWeeks: $clientCustomFields.data.findersFeePermOneToFourWeeks,
@@ -149,7 +174,8 @@
                 longTermTeacher: $clientCustomFields.data.longTermTeacher,
                 longTermStaff: $clientCustomFields.data.longTermStaff,
                 longTermTA: $clientCustomFields.data.longTermTA,
-                longTermSenTA: $clientCustomFields.data.longTermSenTA
+                longTermSenTA: $clientCustomFields.data.longTermSenTA,
+                hasClientAcceptedContract: $clientCustomFields.data.hasClientAcceptedContract ?? false
             };
         }
     });
@@ -414,12 +440,12 @@
                 >
                     Company Details
                 </button>
-                <button
+                <!-- <button
                     class="{activeTab === 'charges' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors"
                     onclick={() => activeTab = 'charges'}
                 >
                     Client Charges
-                </button>
+                </button> -->
                 <button
                     class="{activeTab === 'custom-fields' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors"
                     onclick={() => activeTab = 'custom-fields'}
@@ -530,61 +556,6 @@
         </div>
     {/if}
 
-    {#if activeTab === 'charges'}
-        <div class="space-y-6" in:fly={{ x: 100, duration: 300 }}>
-            <div class="p-6 bg-gray-50 rounded-xl">
-                <div class="flex justify-between items-center mb-6">
-                    <h4 class="text-xl font-semibold text-gray-800">Client Charges</h4>
-                    <button
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                        onclick={saveCharges}
-                        disabled={isSavingCharges || $chargesLoading}
-                    >
-                        {isSavingCharges ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
-                
-                {#if $chargesLoading}
-                    <div class="flex justify-center items-center h-32">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <span class="ml-2 text-gray-600">Loading charges...</span>
-                    </div>
-                {:else}
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Charges</label>
-                            <input
-                                type="number"
-                                bind:value={chargesForm.currentCharges}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Temporary Charges</label>
-                            <input
-                                type="number"
-                                bind:value={chargesForm.temporaryCharges}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div class="col-span-2">
-                            <label class="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={chargesForm.temporaryChargesIsActive}
-                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="text-sm font-medium text-gray-700">Temporary Charges Active</span>
-                            </label>
-                        </div>
-                    </div>
-                {/if}
-            </div>
-        </div>
-    {/if}
-
     {#if activeTab === 'custom-fields'}
         <div class="space-y-6" in:fly={{ x: 100, duration: 300 }}>
             <div class="p-6 bg-gray-50 rounded-xl">
@@ -605,176 +576,383 @@
                         <span class="ml-2 text-gray-600">Loading custom fields...</span>
                     </div>
                 {:else}
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Date TC Field</label>
-                            <input
-                                type="text"
-                                bind:value={customFieldsForm.dateTcField}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                    <div class="space-y-8">
+                        <!-- General Settings -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">General Settings</h5>
+                            <div class="grid grid-cols-2 gap-6">
+                                <!-- <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date TC Field</label>
+                                    <input
+                                        type="text"
+                                        bind:value={customFieldsForm.dateTcField}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div> -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Client Contract Accepted</label>
+                                    <div class="flex items-center">
+                                        <input
+                                            disabled={true}
+                                            type="checkbox"
+                                            bind:checked={customFieldsForm.hasClientAcceptedContract}
+                                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <span class="ml-2 text-sm text-gray-700">Contract has been accepted</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Unqualified Part Experienced</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.unqualifiedPartExperienced}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
+
+                        <!-- Staff Rates & Charges -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Staff Rates & Charges</h5>
+                            <div class="space-y-6">
+                                <!-- Unqualified Part Experienced -->
+                                <div class="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                                    <h6 class="font-medium text-gray-700 mb-3">Unqualified Part Experienced</h6>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Standard Rate</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.unqualifiedPartExperienced}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Temporary Charge</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.unqualifiedPartExperiencedTemporaryCharge}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <label class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    bind:checked={customFieldsForm.unqualifiedPartExperiencedEnabled}
+                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Unqualified Experience -->
+                                <div class="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                                    <h6 class="font-medium text-gray-700 mb-3">Unqualified Experience</h6>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Standard Rate</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.unqualifiedExperience}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Temporary Charge</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.unqualifiedExperienceTemporaryCharge}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <label class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    bind:checked={customFieldsForm.unqualifiedExperienceEnabled}
+                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Nursery Level Two -->
+                                <div class="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                                    <h6 class="font-medium text-gray-700 mb-3">Nursery Level Two</h6>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Standard Rate</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.nurseryLevelTwo}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Temporary Charge</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.nurseryLevelTwoTemporaryCharge}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <label class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    bind:checked={customFieldsForm.nurseryLevelTwoEnabled}
+                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Children Level Three -->
+                                <div class="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                                    <h6 class="font-medium text-gray-700 mb-3">Children Level Three</h6>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Standard Rate</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.childrenLevelThree}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Temporary Charge</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.childrenLevelThreeTemporaryCharge}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <label class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    bind:checked={customFieldsForm.childrenLevelThreeEnabled}
+                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Children Level Four And Up -->
+                                <div class="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                                    <h6 class="font-medium text-gray-700 mb-3">Children Level Four And Up</h6>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Standard Rate</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.childrenLevelFourAndUp}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-600 mb-1">Temporary Charge</label>
+                                            <input
+                                                type="number"
+                                                bind:value={customFieldsForm.childrenLevelFourAndUpTemporaryCharge}
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <label class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    bind:checked={customFieldsForm.childrenLevelFourAndUpEnabled}
+                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Unqualified Experience</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.unqualifiedExperience}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
+
+                        <!-- Leadership & Management Roles -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Leadership & Management Roles</h5>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Room Leader</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.roomLeader}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Manager & Deputy Manager</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.managerAndDeputyManager}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Children Level Two</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.childrenLevelTwo}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
+
+                        <!-- Specialized Roles -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Specialized Roles</h5>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nursery Chef</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.nurseryChef}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Qualified Nursery Staff</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.qualifiedNurseryStaff}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Children Level Three</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.childrenLevelThree}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
+
+                        <!-- Teaching Roles -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Teaching Roles</h5>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Teaching Assistant</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.teachingAssistant}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">SEN Teaching Assistant</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.senTeachingAssistant}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Supply Teacher</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.supplyTeacher}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Children Level Four And Up</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.childrenLevelFourAndUp}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
+
+                        <!-- Long Term Positions -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Long Term Positions</h5>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Long Term Teacher</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.longTermTeacher}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Long Term Staff</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.longTermStaff}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Long Term TA</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.longTermTA}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Long Term SEN TA</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.longTermSenTA}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nursery Chef</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.nurseryChef}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Finders Fee Standard</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.findersFeeStandard}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Finders Fee Perm 1-4 Weeks</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.findersFeePermOneToFourWeeks}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Finders Fee Perm 5-8 Weeks</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.findersFeePermFiveToEightWeeks}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Finders Fee Perm 8-12 Weeks</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.findersFeePermEightToTwelveWeeks}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Teaching Assistant</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.teachingAssistant}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">SEN Teaching Assistant</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.senTeachingAssistant}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Supply Teacher</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.supplyTeacher}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Qualified Nursery Staff</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.qualifiedNurseryStaff}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Long Term Teacher</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.longTermTeacher}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Long Term Staff</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.longTermStaff}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Long Term TA</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.longTermTA}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Long Term SEN TA</label>
-                            <input
-                                type="number"
-                                bind:value={customFieldsForm.longTermSenTA}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                step="0.01"
-                            />
+
+                        <!-- Finders Fees -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <h5 class="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Finders Fees</h5>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Standard Fee</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.findersFeeStandard}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Permanent 1-4 Weeks</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.findersFeePermOneToFourWeeks}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Permanent 5-8 Weeks</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.findersFeePermFiveToEightWeeks}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Permanent 8-12 Weeks</label>
+                                    <input
+                                        type="number"
+                                        bind:value={customFieldsForm.findersFeePermEightToTwelveWeeks}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 {/if}

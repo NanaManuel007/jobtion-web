@@ -31,15 +31,27 @@ export interface ClientsType {
         clientId: string;
         dateTcField: string;
         unqualifiedPartExperienced: number;
+        unqualifiedPartExperiencedTemporaryCharge: number;
+        unqualifiedPartExperiencedEnabled: boolean;
         unqualifiedExperience: number;
-        childrenLevelTwo: number;
+        unqualifiedExperienceTemporaryCharge: number;
+        unqualifiedExperienceEnabled: boolean;
+        nurseryLevelTwo: number;
+        nurseryLevelTwoTemporaryCharge: number;
+        nurseryLevelTwoEnabled: boolean;
         childrenLevelThree: number;
+        childrenLevelThreeTemporaryCharge: number;
+        childrenLevelThreeEnabled: boolean;
         childrenLevelFourAndUp: number;
-        nurseryChef: number;
+        childrenLevelFourAndUpTemporaryCharge: number;
+        childrenLevelFourAndUpEnabled: boolean;
+        roomLeader: number;
+        managerAndDeputyManager: number;
         findersFeeStandard: number;
         findersFeePermOneToFourWeeks: number;
         findersFeePermFiveToEightWeeks: number;
         findersFeePermEightToTwelveWeeks: number;
+        nurseryChef: number;
         teachingAssistant: number;
         senTeachingAssistant: number;
         supplyTeacher: number;
@@ -48,6 +60,7 @@ export interface ClientsType {
         longTermStaff: number;
         longTermTA: number;
         longTermSenTA: number;
+        hasClientAcceptedContract: boolean;
         createdAt: string;
         updatedAt: string;
     };
@@ -184,15 +197,27 @@ export interface ClientCustomFieldsData {
     clientId: string;
     dateTcField: string;
     unqualifiedPartExperienced: number;
+    unqualifiedPartExperiencedTemporaryCharge: number;
+    unqualifiedPartExperiencedEnabled: boolean;
     unqualifiedExperience: number;
-    childrenLevelTwo: number;
+    unqualifiedExperienceTemporaryCharge: number;
+    unqualifiedExperienceEnabled: boolean;
+    nurseryLevelTwo: number;
+    nurseryLevelTwoTemporaryCharge: number;
+    nurseryLevelTwoEnabled: boolean;
     childrenLevelThree: number;
+    childrenLevelThreeTemporaryCharge: number;
+    childrenLevelThreeEnabled: boolean;
     childrenLevelFourAndUp: number;
-    nurseryChef: number;
+    childrenLevelFourAndUpTemporaryCharge: number;
+    childrenLevelFourAndUpEnabled: boolean;
+    roomLeader: number;
+    managerAndDeputyManager: number;
     findersFeeStandard: number;
     findersFeePermOneToFourWeeks: number;
     findersFeePermFiveToEightWeeks: number;
     findersFeePermEightToTwelveWeeks: number;
+    nurseryChef: number;
     teachingAssistant: number;
     senTeachingAssistant: number;
     supplyTeacher: number;
@@ -201,6 +226,7 @@ export interface ClientCustomFieldsData {
     longTermStaff: number;
     longTermTA: number;
     longTermSenTA: number;
+    hasClientAcceptedContract: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -217,15 +243,27 @@ export interface ClientCustomFieldsResponse {
 export interface ClientCustomFieldsUpdateRequest {
     dateTcField: string;
     unqualifiedPartExperienced: number;
+    unqualifiedPartExperiencedTemporaryCharge: number;
+    unqualifiedPartExperiencedEnabled: boolean;
     unqualifiedExperience: number;
-    childrenLevelTwo: number;
+    unqualifiedExperienceTemporaryCharge: number;
+    unqualifiedExperienceEnabled: boolean;
+    nurseryLevelTwo: number;
+    nurseryLevelTwoTemporaryCharge: number;
+    nurseryLevelTwoEnabled: boolean;
     childrenLevelThree: number;
+    childrenLevelThreeTemporaryCharge: number;
+    childrenLevelThreeEnabled: boolean;
     childrenLevelFourAndUp: number;
-    nurseryChef: number;
+    childrenLevelFourAndUpTemporaryCharge: number;
+    childrenLevelFourAndUpEnabled: boolean;
+    roomLeader: number;
+    managerAndDeputyManager: number;
     findersFeeStandard: number;
     findersFeePermOneToFourWeeks: number;
     findersFeePermFiveToEightWeeks: number;
     findersFeePermEightToTwelveWeeks: number;
+    nurseryChef: number;
     teachingAssistant: number;
     senTeachingAssistant: number;
     supplyTeacher: number;
@@ -234,6 +272,7 @@ export interface ClientCustomFieldsUpdateRequest {
     longTermStaff: number;
     longTermTA: number;
     longTermSenTA: number;
+    hasClientAcceptedContract: boolean;
 }
 
 // Client Contacts Types

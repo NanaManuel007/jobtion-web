@@ -167,14 +167,35 @@
         loadInternalJobs();
     }
 
+    // function calculateWorkDate(dayKey: string): string {
+    //     if (!weekStartDate) return '';
+    //     const startDate = new Date(weekStartDate);
+    //     const dayIndex = daysOfWeek.findIndex(d => d.key === dayKey);
+    //     const workDate = new Date(startDate);
+    //     workDate.setDate(startDate.getDate() + dayIndex);
+    //     return workDate.toISOString().split('T')[0];
+    // }
+
     function calculateWorkDate(dayKey: string): string {
-        if (!weekStartDate) return '';
-        const startDate = new Date(weekStartDate);
-        const dayIndex = daysOfWeek.findIndex(d => d.key === dayKey);
-        const workDate = new Date(startDate);
-        workDate.setDate(startDate.getDate() + dayIndex);
-        return workDate.toISOString().split('T')[0];
-    }
+    if (!weekStartDate) return '';
+    
+    // Get the selected date
+    const selectedDate = new Date(weekStartDate);
+    
+    // Find the Monday of the week containing the selected date
+    const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as last day of week
+    
+    const monday = new Date(selectedDate);
+    monday.setDate(selectedDate.getDate() + mondayOffset);
+    
+    // Calculate the target day from Monday
+    const dayIndex = daysOfWeek.findIndex(d => d.key === dayKey);
+    const workDate = new Date(monday);
+    workDate.setDate(monday.getDate() + dayIndex);
+    
+    return workDate.toISOString().split('T')[0];
+}
 
     function updateAllWorkDates() {
         if (weekStartDate) {
@@ -293,6 +314,74 @@
 
     // Add validation state
     let validationErrors: string[] = [];
+
+    // Add state variables for editing candidate charges
+    let isEditingCharges = false;
+    let editedPayment = 0;
+    let editedTemporaryCharge = 0;
+    let editedTemporaryChargeActive = false;
+    let savingCharges = false;
+
+    // Function to start editing charges
+    function startEditingCharges() {
+        if (selectedCandidateDetails?.paymentModel) {
+            editedPayment = selectedCandidateDetails.paymentModel.payment;
+            editedTemporaryCharge = selectedCandidateDetails.paymentModel.temporaryCharge;
+            editedTemporaryChargeActive = selectedCandidateDetails.paymentModel.temporaryChargeActive || false;
+            isEditingCharges = true;
+        }
+    }
+
+    // Function to cancel editing charges
+    function cancelEditingCharges() {
+        isEditingCharges = false;
+        editedPayment = 0;
+        editedTemporaryCharge = 0;
+        editedTemporaryChargeActive = false;
+    }
+
+    // Function to save candidate charges
+    async function saveCandidateCharges() {
+        if (!selectedCandidate || !selectedCandidateDetails) {
+            showErrorToast('No candidate selected');
+            return;
+        }
+
+        // Validate input values
+        if (editedPayment <= 0) {
+            showErrorToast('Base payment must be greater than 0');
+            return;
+        }
+        if (editedTemporaryCharge <= 0) {
+            showErrorToast('Temporary charge must be greater than 0');
+            return;
+        }
+
+        savingCharges = true;
+        try {
+            // Update the payment model
+            const updatedPaymentModel = {
+                ...selectedCandidateDetails.paymentModel,
+                payment: editedPayment,
+                temporaryCharge: editedTemporaryCharge,
+                temporaryChargeActive: editedTemporaryChargeActive
+            };
+
+            // Call the service to update candidate payment model
+            await CandidateService.updatePaymentModel(selectedCandidate.id, updatedPaymentModel);
+            
+            // Update local state
+            selectedCandidateDetails.paymentModel = updatedPaymentModel;
+            isEditingCharges = false;
+            
+            showSuccessToast('Candidate charges updated successfully');
+        } catch (error) {
+            console.error('Error updating candidate charges:', error);
+            showErrorToast('Failed to update candidate charges');
+        } finally {
+            savingCharges = false;
+        }
+    }
 
     // Add function to fetch detailed candidate information
     async function fetchCandidateDetails(candidateId: string) {
@@ -706,6 +795,148 @@
                 {:else if currentStep === 3}
                     <!-- Step 3: Configure Daily Timesheets (Only Selected Days) -->
                     <div class="space-y-6">
+                        <!-- Candidate Charges Section -->
+                        {#if selectedCandidateDetails?.paymentModel}
+                            <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 mb-6">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                        <h4 class="text-lg font-semibold text-gray-800">Candidate Charges</h4>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        {#if !isEditingCharges}
+                                            <button 
+                                                on:click={startEditingCharges}
+                                                class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors flex items-center"
+                                            >
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                                Edit
+                                            </button>
+                                        {:else}
+                                            <button 
+                                                on:click={cancelEditingCharges}
+                                                class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                                                disabled={savingCharges}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button 
+                                                on:click={saveCandidateCharges}
+                                                class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors flex items-center"
+                                                disabled={savingCharges}
+                                            >
+                                                {#if savingCharges}
+                                                    <svg class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Saving...
+                                                {:else}
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    Save
+                                                {/if}
+                                            </button>
+                                        {/if}
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Base Payment -->
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-600">Base Payment</p>
+                                            {#if isEditingCharges}
+                                                <div class="flex items-center">
+                                                    <span class="text-lg font-bold text-gray-800 mr-1">£</span>
+                                                    <input 
+                                                        type="number" 
+                                                        bind:value={editedPayment}
+                                                        min="0" 
+                                                        step="0.01"
+                                                        class="text-lg font-bold text-gray-800 bg-white border border-gray-300 rounded px-2 py-1 w-20"
+                                                    />
+                                                    <span class="text-lg font-bold text-gray-800 ml-1">/hr</span>
+                                                </div>
+                                            {:else}
+                                                <p class="text-lg font-bold text-gray-800">£{selectedCandidateDetails.paymentModel.payment}/hr</p>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Temporary Charge -->
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-600">Temporary Charge</p>
+                                            {#if isEditingCharges}
+                                                <div class="flex items-center">
+                                                    <span class="text-lg font-bold text-gray-800 mr-1">£</span>
+                                                    <input 
+                                                        type="number" 
+                                                        bind:value={editedTemporaryCharge}
+                                                        min="0" 
+                                                        step="0.01"
+                                                        class="text-lg font-bold text-gray-800 bg-white border border-gray-300 rounded px-2 py-1 w-20"
+                                                    />
+                                                    <span class="text-lg font-bold text-gray-800 ml-1">/hr</span>
+                                                </div>
+                                            {:else}
+                                                <p class="text-lg font-bold text-gray-800">£{selectedCandidateDetails.paymentModel.temporaryCharge}/hr</p>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status -->
+                                    {#if selectedCandidateDetails.paymentModel.temporaryChargeActive !== undefined}
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 {(isEditingCharges ? editedTemporaryChargeActive : selectedCandidateDetails.paymentModel.temporaryChargeActive) ? 'bg-green-100' : 'bg-red-100'} rounded-lg flex items-center justify-center">
+                                                <svg class="w-5 h-5 {(isEditingCharges ? editedTemporaryChargeActive : selectedCandidateDetails.paymentModel.temporaryChargeActive) ? 'text-green-600' : 'text-red-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{(isEditingCharges ? editedTemporaryChargeActive : selectedCandidateDetails.paymentModel.temporaryChargeActive) ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'}"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-sm text-gray-600">Status</p>
+                                                {#if isEditingCharges}
+                                                    <label class="flex items-center cursor-pointer">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            bind:checked={editedTemporaryChargeActive}
+                                                            class="sr-only"
+                                                        />
+                                                        <div class="relative">
+                                                            <div class="w-10 h-6 bg-gray-200 rounded-full shadow-inner transition-colors {editedTemporaryChargeActive ? 'bg-green-400' : ''}"></div>
+                                                            <div class="absolute w-4 h-4 bg-white rounded-full shadow top-1 transition-transform {editedTemporaryChargeActive ? 'translate-x-5' : 'translate-x-1'}"></div>
+                                                        </div>
+                                                        <span class="ml-2 text-sm font-medium {editedTemporaryChargeActive ? 'text-green-800' : 'text-red-800'}">
+                                                            {editedTemporaryChargeActive ? 'Active' : 'Inactive'}
+                                                        </span>
+                                                    </label>
+                                                {:else}
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium {selectedCandidateDetails.paymentModel.temporaryChargeActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                                        {selectedCandidateDetails.paymentModel.temporaryChargeActive ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                {/if}
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/if}
+                        
                         <div class="flex justify-between items-center">
                             <h3 class="text-xl font-semibold text-gray-800 flex items-center">
                                 <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
