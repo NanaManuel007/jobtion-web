@@ -9,6 +9,9 @@
     import type { Candidate, DetailedCandidate } from '$lib/services/candidate_services/candidate.types';
     import { JobService } from '$lib/services/job_services/job.services';
     import { CandidateService } from '$lib/services/candidate_services/candidate.services';
+    // Add qualification imports
+    import { qualificationTypes, isQualificationTypesLoading } from '$lib/services/job_services/job.store';
+    import { jobActions } from '$lib/services/job_services/job.store';
 
     export let isOpen = false;
     export let clientId: string = ''; // Make clientId optional with default empty string
@@ -23,6 +26,9 @@
     // Search states
     let candidateSearch = '';
     let jobSearchTerm = '';
+    // Add qualification filter state
+    let selectedQualificationCode = '';
+    let selectedCandidateQualificationCode = ''; // Add candidate qualification filter
     
     // Toast state
     let showToast = false;
@@ -97,13 +103,21 @@
     async function loadCandidates() {
         candidatesLoading = true;
         try {
-            // Use CandidateService instead of JobService for proper candidate data
+            // Get the selected qualification's readable name for filtering
+            let qualificationReadableName = undefined;
+            if (selectedCandidateQualificationCode.trim()) {
+                const selectedQualification = $qualificationTypes.find(q => q.qualificationTypeCode === selectedCandidateQualificationCode);
+                qualificationReadableName = selectedQualification?.readableName;
+            }
+
+            // Use CandidateService with qualification filtering
             const response = await CandidateService.getAllCandidates({
                 page: candidatesPage,
                 pageSize: 10,
                 isEmailVerified: true,
                 isActive: true,
-                search: candidateSearch.trim() || undefined
+                search: candidateSearch.trim() || undefined,
+                qualificationReadableName: qualificationReadableName
             });
             
             candidates = response.data?.items || [];
@@ -143,6 +157,13 @@
                 );
             }
             
+            // Apply qualification filter
+            if (selectedQualificationCode.trim()) {
+                jobList = jobList.filter(job => 
+                    job.qualificationTypeCode === selectedQualificationCode
+                );
+            }
+            
             internalJobs = jobList;
             jobsTotal = jobList.length;
         } catch (error) {
@@ -165,6 +186,18 @@
     function handleJobSearch() {
         jobsPage = 1; // Reset to first page when searching
         loadInternalJobs();
+    }
+
+    // Function to handle qualification filter
+    function handleQualificationFilter() {
+        jobsPage = 1; // Reset to first page when filtering
+        loadInternalJobs();
+    }
+
+    // Function to handle candidate qualification filter
+    function handleCandidateQualificationFilter() {
+        candidatesPage = 1; // Reset to first page when filtering
+        loadCandidates();
     }
 
     // function calculateWorkDate(dayKey: string): string {
@@ -479,6 +512,10 @@
         if (isOpen) {
             loadCandidates();
             loadInternalJobs();
+            // Load qualifications if not already loaded
+            if ($qualificationTypes.length === 0) {
+                jobActions.getQualificationTypes();
+            }
         }
     });
 
@@ -545,6 +582,27 @@
                                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
+                            </div>
+                            
+                            <!-- Candidate Qualification Filter -->
+                            <div class="relative">
+                                {#if $isQualificationTypesLoading}
+                                    <div class="flex items-center justify-center py-2">
+                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        <span class="ml-2 text-sm text-gray-600">Loading qualifications...</span>
+                                    </div>
+                                {:else}
+                                    <select 
+                                        bind:value={selectedCandidateQualificationCode}
+                                        on:change={handleCandidateQualificationFilter}
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="">All Qualifications</option>
+                                        {#each $qualificationTypes as qualification}
+                                            <option value={qualification.qualificationTypeCode}>{qualification.readableName}</option>
+                                        {/each}
+                                    </select>
+                                {/if}
                             </div>
                             
                             {#if candidatesLoading}
@@ -633,6 +691,28 @@
                                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
+                            </div>
+                            
+                            <!-- Qualification Filter -->
+                            <div class="relative">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Qualification</label>
+                                {#if $isQualificationTypesLoading}
+                                    <div class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 flex items-center">
+                                        <span class="material-icons-sharp animate-spin text-sm mr-2">refresh</span>
+                                        Loading qualifications...
+                                    </div>
+                                {:else}
+                                    <select
+                                        bind:value={selectedQualificationCode}
+                                        on:change={handleQualificationFilter}
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                    >
+                                        <option value="">All Qualifications</option>
+                                        {#each $qualificationTypes as qualification}
+                                            <option value={qualification.qualificationTypeCode}>{qualification.readableName}</option>
+                                        {/each}
+                                    </select>
+                                {/if}
                             </div>
                             
                             {#if jobsLoading}

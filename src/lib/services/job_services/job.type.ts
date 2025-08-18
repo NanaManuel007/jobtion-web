@@ -234,8 +234,29 @@ export type JobData = {
     postedStartDate: string;
     postedRoles: number;
     isPublished: boolean;
+        qualificationTypeId?: string;
+    requiredQualificationName?: string;
+    qualificationTypeCode?: string;
+    requiredLevel?: string;
 };
 
+export type QualificationType = {
+    id: string;
+    qualificationTypeCode: string;
+    readableName: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type QualificationTypesResponse = {
+    success: boolean;
+    statusCode: number;
+    responseBody: string;
+    errors: string;
+    timestamp: string;
+    data: QualificationType[];
+};
 export type JobResponse = {
     id: number;
     jobTitle: string;
@@ -293,6 +314,10 @@ export type InternalJobCreateRequest = {
     jobStartDate: string;
     jobCloseDate: string;
     requiredLevel: string;
+    // Qualification fields
+    qualificationTypeId?: string;
+    requiredQualificationName?: string;
+    qualificationTypeCode?: string;
 };
 
 export type InternalJobUpdateRequest = InternalJobCreateRequest;
@@ -331,6 +356,10 @@ export type InternalJobAPI = {
     numberOfRolesAvailable: number;
     isPublished: boolean;
     requiredLevel: string;
+    // ... existing code ...
+    qualificationTypeId?: string;
+    requiredQualificationName?: string;
+    qualificationTypeCode?: string;
     createdAt: string;
     updatedAt: string;
 };

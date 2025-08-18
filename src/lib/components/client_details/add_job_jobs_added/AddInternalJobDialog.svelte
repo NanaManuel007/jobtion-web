@@ -1,8 +1,8 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
-    import { createEventDispatcher } from 'svelte';
-    import type { InternalJobCreateRequest, InternalJobAPI } from '$lib/services/job_services/job.type';
-    import { jobActions } from '$lib/services/job_services/job.store';
+    import { createEventDispatcher, onMount } from 'svelte';
+    import type { InternalJobCreateRequest, InternalJobAPI, QualificationType } from '$lib/services/job_services/job.type';
+    import { jobActions, qualificationTypes, isQualificationTypesLoading } from '$lib/services/job_services/job.store';
     import Toast from '$lib/components/general_components/Toast.svelte';
 
     const dispatch = createEventDispatcher();
@@ -43,8 +43,37 @@
         postedStartDate: new Date().toISOString().split('T')[0],
         jobStartDate: new Date().toISOString().split('T')[0],
         jobCloseDate: new Date().toISOString().split('T')[0],
-        requiredLevel: ''
+        requiredLevel: 'Level one',
+        qualificationTypeId: '',
+        requiredQualificationName: '',
+        qualificationTypeCode: ''
     });
+
+    // Load qualifications on mount
+    onMount(async () => {
+        if ($qualificationTypes.length === 0) {
+            await jobActions.getQualificationTypes();
+        }
+    });
+
+    // Handle qualification selection
+    function handleQualificationChange(event: Event) {
+        const target = event.target as HTMLSelectElement;
+        const selectedId = target.value;
+        
+        if (selectedId) {
+            const selectedQualification = $qualificationTypes.find(q => q.id === selectedId);
+            if (selectedQualification) {
+                jobData.qualificationTypeId = selectedQualification.id;
+                jobData.requiredQualificationName = selectedQualification.readableName;
+                jobData.qualificationTypeCode = selectedQualification.qualificationTypeCode;
+            }
+        } else {
+            jobData.qualificationTypeId = '';
+            jobData.requiredQualificationName = '';
+            jobData.qualificationTypeCode = '';
+        }
+    }
 
     // Reset form when dialog closes
     $effect(() => {
@@ -73,7 +102,10 @@
                 postedStartDate: new Date().toISOString().split('T')[0],
                 jobStartDate: new Date().toISOString().split('T')[0],
                 jobCloseDate: new Date().toISOString().split('T')[0],
-                requiredLevel: ''
+                requiredLevel: 'Level one',
+                qualificationTypeId: '',
+                requiredQualificationName: '',
+                qualificationTypeCode: ''
             };
             errors = {};
         }
@@ -106,7 +138,10 @@
                 postedStartDate: jobToEdit.postedStartDate?.split('T')[0] || new Date().toISOString().split('T')[0],
                 jobStartDate: jobToEdit.jobStartDate?.split('T')[0] || new Date().toISOString().split('T')[0],
                 jobCloseDate: jobToEdit.jobCloseDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-                requiredLevel: jobToEdit.requiredLevel || ''
+                requiredLevel: jobToEdit.requiredLevel || 'level one',
+                qualificationTypeId: (jobToEdit as any).qualificationTypeId || '',
+                requiredQualificationName: (jobToEdit as any).requiredQualificationName || '',
+                qualificationTypeCode: (jobToEdit as any).qualificationTypeCode || ''
             };
         }
     });
@@ -143,10 +178,7 @@
             errors.requirement1 = 'At least one requirement is required';
             isValid = false;
         }
-        if (!jobData.requiredLevel.trim()) {
-            errors.requiredLevel = 'Required level is required';
-            isValid = false;
-        }
+
 
         return isValid;
     }
@@ -274,21 +306,36 @@
                                         <p class="text-red-500 text-sm mt-1">{errors.jobLocation}</p>
                                     {/if}
                                 </div>
+                    
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Required Level *</label>
-                                    <select
-                                        bind:value={jobData.requiredLevel}
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 {errors.requiredLevel ? 'border-red-500' : ''}"
-                                    >
-                                        <option value="">Select required level</option>
-                                        <option value="Entry Level">Entry Level</option>
-                                        <option value="Mid Level">Mid Level</option>
-                                        <option value="Senior Level">Senior Level</option>
-                                        <option value="Executive Level">Executive Level</option>
-                                    </select>
-                                    {#if errors.requiredLevel}
-                                        <p class="text-red-500 text-sm mt-1">{errors.requiredLevel}</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Required Qualification</label>
+                                    {#if $isQualificationTypesLoading}
+                                        <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 flex items-center">
+                                            <span class="material-icons-sharp animate-spin text-sm mr-2">refresh</span>
+                                            Loading qualifications...
+                                        </div>
+                                    {:else}
+                                        <select
+                                            value={jobData.qualificationTypeId}
+                                            on:change={handleQualificationChange}
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">Select qualification (optional)</option>
+                                            {#each $qualificationTypes as qualification}
+                                                <option value={qualification.id}>{qualification.readableName}</option>
+                                            {/each}
+                                        </select>
                                     {/if}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Qualification Code</label>
+                                    <input
+                                        type="text"
+                                        value={jobData.qualificationTypeCode}
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
+                                        placeholder="Auto-filled when qualification is selected"
+                                        readonly
+                                    />
                                 </div>
                             </div>
                         </div>

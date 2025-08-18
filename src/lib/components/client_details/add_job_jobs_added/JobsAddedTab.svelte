@@ -365,8 +365,7 @@ let showDeleteDialog = $state(false);
 let timesheetToDelete: any = $state(null);
 let isDeletingTimesheet = $state(false);
 
-// Add validation state
-let chargesValidationError = $state('');
+
 
 // Add these functions after the existing timesheet functions
 async function handleViewDetails(timesheet: WeeklyTimesheetAPI) {
@@ -451,48 +450,9 @@ function handleDeleteCancel() {
     timesheetToDelete = null;
 }
 
-// Add function to validate client charges
-async function validateClientCharges(): Promise<boolean> {
-    try {
-        // Load client charges if not already loaded
-        if (!$clientCharges) {
-            await clientActions.getClientCharges(client.id);
-        }
-        
-        // Check if charges are available and valid
-        if (!$clientCharges?.data) {
-            chargesValidationError = 'Client charges information is not available. Please configure client charges before adding jobs.';
-            return false;
-        }
-        
-        const charges = $clientCharges.data;
-        
-        // Check if current charges are set and greater than 0
-        if (!charges.currentCharges || charges.currentCharges <= 0) {
-            chargesValidationError = 'Client charges must be configured with a valid amount greater than 0 before adding jobs.';
-            return false;
-        }
-        
-        chargesValidationError = '';
-        return true;
-    } catch (error) {
-        console.error('Error validating client charges:', error);
-        chargesValidationError = 'Failed to validate client charges. Please try again.';
-        return false;
-    }
-}
-
 // Update the Add Internal Job handler
-async function handleAddInternalJobClick() {
-    const isValid = await validateClientCharges();
-    
-    if (!isValid) {
-        // Show error toast or alert
-        showErrorToast(chargesValidationError);
-        return;
-    }
-    
-    // If validation passes, show the dialog
+function handleAddInternalJobClick() {
+    // Remove validation logic and directly show the dialog
     showAddInternalJobDialog = true;
 }
 
@@ -734,12 +694,11 @@ async function handleAddInternalJobClick() {
                 <div class="flex justify-between items-center mb-8 px-5">
                     <h3 class="text-xl font-semibold text-gray-800">Internal Jobs</h3>
                     <button 
-                        class="bg-blue-500 text-white px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300 transform scale-100 shadow-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="bg-blue-500 text-white px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300 transform scale-100 shadow-md hover:bg-blue-600"
                         onclick={handleAddInternalJobClick}
-                        disabled={$chargesLoading}
                     >
                         <span class="material-icons-sharp">add_circle</span>
-                        <span>{$chargesLoading ? 'Checking charges...' : 'Add Internal Job'}</span>
+                        <span>Add Internal Job</span>
                     </button>
                 </div>
 

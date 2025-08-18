@@ -20,6 +20,7 @@ export class CandidateService {
             if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
             if (params.isAdminVerified !== undefined) queryParams.append('isAdminVerified', params.isAdminVerified.toString());
             if (params.isEmailVerified !== undefined) queryParams.append('isEmailVerified', params.isEmailVerified.toString());
+            if (params.qualificationReadableName) queryParams.append('qualificationReadableName', params.qualificationReadableName);
 
             const url = `${getApiUrl(API_CONFIG.ENDPOINTS.CANDIDATES.LIST)}?${queryParams.toString()}`;
 

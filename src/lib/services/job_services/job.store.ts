@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { JobService } from './job.services';
-import type { BookJob, InternalJobAPI, InternalJobCreateRequest, InternalJobUpdateRequest, JobData, JobResponse, PermanentJobAPI, PermanentJobCreateRequest } from './job.type';
+import type { BookJob, InternalJobAPI, InternalJobCreateRequest, InternalJobUpdateRequest, JobData, JobResponse, PermanentJobAPI, PermanentJobCreateRequest, QualificationType } from './job.type';
 
 export const jobs = writable<JobResponse[]>([]);
 export const isJobsLoading = writable(false);
@@ -25,6 +25,10 @@ export const internalJobsPagination = writable({
     totalCount: 0,
     totalPages: 0
 });
+
+// Add qualification stores
+export const qualificationTypes = writable<QualificationType[]>([]);
+export const isQualificationTypesLoading = writable(false);
 
 export const jobActions = {
     // async getAllJobs() {
@@ -157,6 +161,22 @@ export const jobActions = {
         isInternalJobsLoading.set(false);
     }
 },
+    async getQualificationTypes() {
+        isQualificationTypesLoading.set(true);
+        try {
+            const response = await JobService.getQualificationTypes();
+            if (response && response.success) {
+                // Filter only active qualification types
+                const activeQualifications = response.data.filter(q => q.isActive);
+                qualificationTypes.set(activeQualifications);
+            }
+        } catch (error) {
+            console.error('Failed to fetch qualification types:', error);
+            qualificationTypes.set([]);
+        } finally {
+            isQualificationTypesLoading.set(false);
+        }
+    },
 async getAllInternalJobs(page: number = 1, pageSize: number = 10, searchTerm?: string) {
         isInternalJobsLoading.set(true);
         try {
@@ -217,3 +237,6 @@ async deleteInternalJob(jobId: string, clientId: string) {
 
 
 // Updated internal job actions with search support
+
+    // Add qualification actions
+

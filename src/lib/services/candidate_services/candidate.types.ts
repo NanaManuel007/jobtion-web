@@ -50,6 +50,7 @@ export interface CandidateQueryParams {
     pageSize?: number;
     isAdminVerified?: boolean;
     isEmailVerified?: boolean;
+    qualificationReadableName?: string;
 }
 // full user data
 

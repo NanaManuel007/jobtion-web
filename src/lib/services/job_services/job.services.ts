@@ -1,5 +1,5 @@
 import { getApiUrl, API_CONFIG } from '$lib/services/api';
-import type { BookJob, CandidatesResponse, DayTimesheet, InternalJobCreateRequest, InternalJobsResponse, InternalJobUpdateRequest, JobData,JobResponse, PermanentJobCreateRequest, PermanentJobsResponse, WeeklyTimesheetAPI, WeeklyTimesheetCreateRequest, WeeklyTimesheetsResponse } from './job.type';
+import type { BookJob, CandidatesResponse, DayTimesheet, InternalJobCreateRequest, InternalJobsResponse, InternalJobUpdateRequest, JobData,JobResponse, PermanentJobCreateRequest, PermanentJobsResponse, QualificationTypesResponse, WeeklyTimesheetAPI, WeeklyTimesheetCreateRequest, WeeklyTimesheetsResponse } from './job.type';
 
 
 
@@ -614,6 +614,45 @@ async deleteWeeklyTimesheet(
         throw error;
     }
 },
+    async getQualificationTypes(): Promise<QualificationTypesResponse> {
+        const url = getApiUrl('QualificationType');
+        const token = localStorage.getItem('access_token');
+        
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch qualification types');
+            }
+
+            const data = await response.json();
+            
+            // Transform response to match expected format
+            const transformedResponse: QualificationTypesResponse = {
+                success: true,
+                statusCode: 200,
+                responseBody: 'Success',
+                errors: '',
+                timestamp: new Date().toISOString(),
+                data: data.data || data || []
+            };
+            
+            return transformedResponse;
+        } catch (error) {
+            console.error('Error fetching qualification types:', error);
+            throw error;
+        }
+    },
 
 async deleteDayTimesheet(
     jobId: string,
