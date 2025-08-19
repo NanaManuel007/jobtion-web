@@ -9,12 +9,11 @@
     import type { Candidate, DetailedCandidate } from '$lib/services/candidate_services/candidate.types';
     import { JobService } from '$lib/services/job_services/job.services';
     import { CandidateService } from '$lib/services/candidate_services/candidate.services';
-    // Add qualification imports
     import { qualificationTypes, isQualificationTypesLoading } from '$lib/services/job_services/job.store';
     import { jobActions } from '$lib/services/job_services/job.store';
 
     export let isOpen = false;
-    export let clientId: string = ''; // Make clientId optional with default empty string
+    export let clientId: string = ''; 
 
     const dispatch = createEventDispatcher();
 
@@ -26,9 +25,8 @@
     // Search states
     let candidateSearch = '';
     let jobSearchTerm = '';
-    // Add qualification filter state
     let selectedQualificationCode = '';
-    let selectedCandidateQualificationCode = ''; // Add candidate qualification filter
+    let selectedCandidateQualificationCode = ''; 
     
     // Toast state
     let showToast = false;
