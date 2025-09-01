@@ -15,10 +15,8 @@
     let showAddJobDialog = false;
     let fetchError = false;
 
-    // Get client ID from URL params and ensure it's a string
     $: clientId = $page.params.id || '';
-    
-    // Get active tab from URL params, default to 'company'
+
     $: activeTab = $page.url.searchParams.get('tab') || 'company';
     
     async function fetchClient() {
