@@ -131,7 +131,6 @@
                 ceoLastName: formData.ceoLastName,
                 companyJobTitle: formData.jobTitle,
                 email: formData.companyEmail,
-                password: formData.password, // Add password for new clients
                 phoneNumber: formData.companyNumber,
                 address: formData.companyAddress,
                 postcode: formData.postalCode,
@@ -142,7 +141,9 @@
                 aboutCompany: formData.aboutCompany || '', // Add missing field
                 website: formData.website,
                 latitude: formData.latitude,
-                longitude: formData.longitude
+                longitude: formData.longitude,
+                // Only include password for new clients
+                ...(existingClient ? {} : { password: formData.password })
             };
 
             let result;
