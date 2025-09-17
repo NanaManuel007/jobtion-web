@@ -19,27 +19,47 @@ export class SystemUserService {
                     'Content-Type': 'application/json'
                 }
             });
-            
+            //print response lets see what is going on 
             if (!response.ok) {
                 throw new Error('Failed to fetch system users');
             }
             
             const data = await response.json();
+            // console.log('API Response Data:', data);
+            // console.log('data.success:', data.success);
+            // console.log('data.data type:', typeof data.data);
+            // console.log('data.data isArray:', Array.isArray(data.data));
+            
+            // Handle different response structures
+            let usersArray = [];
             
             if (data.success && Array.isArray(data.data)) {
-                return data.data.map((user: any) => ({
-                    id: user.id,
-                    email: user.email,
-                    userName: user.username,
-                    roleId: user.role_id,
-                    roleDescription: user.role_description,
-                    roleName: user.role_name,
-                    fullName: user.full_name,
-                    access: user.access || []
-                }));
+                usersArray = data.data;
+            } else if (Array.isArray(data.data)) {
+                usersArray = data.data;
+            } else if (Array.isArray(data)) {
+                usersArray = data;
+            } else {
+                console.warn('Unexpected API response structure:', data);
+                return [];
             }
             
-            return [];
+            console.log('Users array to process:', usersArray);
+            
+            return usersArray.map((user: any) => ({
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                isActive: user.isActive,
+                isSuperAdmin: user.isSuperAdmin,
+                twoFactorEnabled: user.twoFactorEnabled,
+                createdAt: user.createdAt,
+                lastLoginAt: user.lastLoginAt,
+                roles: user.roles || [],
+                permissions: user.permissions || []
+            }));
         } catch (error) {
             console.error('Error fetching system users:', error);
             return [];

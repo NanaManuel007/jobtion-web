@@ -30,18 +30,31 @@
       return;
     }
     
+    console.log('Loading users...');
     await systemUserActions.fetchSystemUsers();
+    console.log('Users loaded, systemUsers store:', $systemUsers);
     updatePaginatedUsers();
   }
 
   function updatePaginatedUsers() {
-    if (!$systemUsers.length) return;
+    console.log('updatePaginatedUsers called, systemUsers length:', $systemUsers.length);
+    console.log('systemUsers data:', $systemUsers);
+    
+    if (!$systemUsers.length) {
+      console.log('No users found, returning early');
+      return;
+    }
 
     // Filter users based on search term
     const filteredUsers = $systemUsers.filter(user => 
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.roleName && user.roleName.toLowerCase().includes(searchTerm.toLowerCase()))
+      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.roles?.some(role => role.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+    
+    console.log('Filtered users:', filteredUsers);
 
 
     // Calculate total pages
@@ -56,6 +69,8 @@
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+    
+    console.log('Paginated users set:', paginatedUsers);
   }
   // Initialize on mount
   onMount(() => {
@@ -91,11 +106,11 @@
   });
 
   // Watch for systemUsers changes
-  // $effect(() => {
-  //   if (mounted) {
-  //     updatePaginatedUsers();
-  //   }
-  // });
+  $effect(() => {
+    if (mounted && $systemUsers) {
+      updatePaginatedUsers();
+    }
+  });
 
   function goToPage(page: number) {
     if (page >= 1 && page <= totalPages) {
@@ -267,23 +282,31 @@
                       <span class="font-mono text-sm">{user.id}</span>
                     </td>
                     <td class="p-4">{user.email}</td>
-                    <td class="p-4">{user.fullName}</td>
+                    <td class="p-4">{user.firstName} {user.lastName}</td>
                     <td class="p-4">
-                      <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                        {user.roleName || 'No Role'}
-                      </span>
+                      <div class="flex flex-wrap gap-1">
+                        {#if user.roles && user.roles.length > 0}
+                          {#each user.roles as role}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                              {role}
+                            </span>
+                          {/each}
+                        {:else}
+                          <span class="text-gray-500 text-sm">No Role</span>
+                        {/if}
+                      </div>
                     </td>
                     <td class="p-4">
                       <div class="flex flex-wrap gap-1">
-                        {#if user.access && user.access.length > 0}
-                          {#each user.access as permission, i}
+                        {#if user.permissions && user.permissions.length > 0}
+                          {#each user.permissions as permission, i}
                             {#if i < 3}
                               <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
                                 {permission}
                               </span>
                             {:else if i === 3}
                               <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                                +{user.access.length - 3} more
+                                +{user.permissions.length - 3} more
                               </span>
                             {/if}
                           {/each}

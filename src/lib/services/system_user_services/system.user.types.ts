@@ -1,5 +1,5 @@
   
-  export type AddAdmin = {
+export type AddAdmin = {
     userName: string;
     email: string;
     roleId: number;
@@ -16,14 +16,17 @@
     roleId: number;
   };
 
-  export type RoleAccess = string;
-  export type SystemUser ={
-    id: number;
+  export type SystemUser = {
+    id: string; // UUID
     email: string;
-    userName: string;
-    roleId: number;
-    roleDescription: string;
-    roleName: string;
-    fullName: string;
-    access: RoleAccess[];
+    username: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    isSuperAdmin: boolean;
+    twoFactorEnabled: boolean;
+    createdAt: string; // ISO date string
+    lastLoginAt: string; // ISO date string
+    roles: string[];
+    permissions: string[];
   }
