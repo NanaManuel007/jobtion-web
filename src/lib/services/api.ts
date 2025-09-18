@@ -3,8 +3,8 @@
 export const API_CONFIG = {
     // BASE_URL: 'https://node.jobtiondevs.com/api/jobtion/', 
     IMAGE_URL: 'https://minio-kogckgccwg40sgkksc4k4o4w.46.202.141.196.sslip.io/jobtion/', 
-    // BASE_URL: 'http://localhost:8080/api/', 
-    BASE_URL: 'https://productionapttmh.quinteduhosting.com/api/',  
+    BASE_URL: 'http://localhost:8080/api/', 
+    // BASE_URL: 'https://productionapttmh.quinteduhosting.com/api/',  
     ENDPOINTS: {
         AUTH: {
             LOGIN: 'admin/auth/login',
