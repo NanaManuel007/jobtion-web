@@ -18,7 +18,7 @@ export const API_CONFIG = {
         },
         ROLESANDPERMISSION: {
             ROLE: 'Role',
-            ROLEPERMISSION:'permissions',
+            ROLEPERMISSION:'Role/permissions',
         },
         COMPANIES: {
             LIST: 'Client',

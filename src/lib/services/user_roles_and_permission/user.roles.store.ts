@@ -1,6 +1,6 @@
 //user roles store
 import { writable, get } from 'svelte/store';
-import type { RoleApiResponse } from './user.roles.types';
+import type { RoleApiResponse, CreateRoleRequest, UpdateRoleRequest } from './user.roles.types';
 import { RoleService } from './user.roles.services';
 
 // Store for all roles
@@ -19,7 +19,7 @@ export const roleActions = {
         try {
             const fetchedRoles = await RoleService.getAllRoles();
             roles.set(fetchedRoles);
-            console.log(fetchedRoles)
+            console.log('Fetched roles:', fetchedRoles);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch roles';
             error.set(errorMessage);
@@ -29,12 +29,12 @@ export const roleActions = {
     },
     
     // Add a new role
-    async addRole(role: RoleApiResponse) {
+    async addRole(roleData: CreateRoleRequest) {
         isLoading.set(true);
         error.set(null);
         
         try {
-            const result = await RoleService.addRole(role);
+            const result = await RoleService.addRole(roleData);
             if (result.success) {
                 // Refresh roles list after adding
                 await this.fetchRoles();
@@ -51,12 +51,12 @@ export const roleActions = {
     },
     
     // Update an existing role
-    async updateRole(role: RoleApiResponse) {
+    async updateRole(id: string, roleData: UpdateRoleRequest) {
         isLoading.set(true);
         error.set(null);
         
         try {
-            const result = await RoleService.updateRole(role);
+            const result = await RoleService.updateRole(id, roleData);
             if (result.success) {
                 // Refresh roles list after updating
                 await this.fetchRoles();
@@ -73,7 +73,7 @@ export const roleActions = {
     },
     
     // Delete a role
-    async deleteRole(id: number) {
+    async deleteRole(id: string) {
         isLoading.set(true);
         error.set(null);
         

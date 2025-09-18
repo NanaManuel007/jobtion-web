@@ -1,11 +1,10 @@
-// user roles and permissions
 import { getApiUrl } from '$lib/services/api';
 import { API_CONFIG } from '$lib/services/api';
-import type { RoleApiResponse, CreateRoleRequest, UpdateRoleRequest } from './user.roles.types';
+import type { Permission, PermissionApiResponse } from './user.permissions.types';
 
-export class RoleService {
+export class PermissionService {
 
-    static async getAllRoles(): Promise<RoleApiResponse[]> {
+    static async getAllPermissions(): Promise<Permission[]> {
         try {
             const token = localStorage.getItem('access_token');
             
@@ -14,7 +13,7 @@ export class RoleService {
                 return [];
             }
             
-            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLE), {
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLEPERMISSION), {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -23,31 +22,29 @@ export class RoleService {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to fetch roles');
+                throw new Error('Failed to fetch permissions');
             }
             
-            const data = await response.json();
-            console.log('Roles API response:', data);
+            const data: PermissionApiResponse = await response.json();
+            console.log('Permissions API Response:', data);
             
             if (data.success && Array.isArray(data.data)) {
-                return data.data.map((role: any) => ({
-                    id: role.id,
-                    name: role.name,
-                    description: role.description || '',
-                    isActive: role.isActive ?? true,
-                    permissions: role.permissions || []
+                return data.data.map((permission: any) => ({
+                    id: permission.id,
+                    name: permission.name,
+                    category: permission.category,
+                    description: permission.description || ''
                 }));
             }
             
             return [];
         } catch (error) {
-            console.error('Error fetching roles:', error);
+            console.error('Error fetching permissions:', error);
             throw error;
         }
     }
-    
 
-    static async addRole(roleData: CreateRoleRequest): Promise<{ success: boolean; message: string }> {
+    static async createPermission(permission: Omit<Permission, 'id'>): Promise<{ success: boolean; message: string }> {
         try {
             const token = localStorage.getItem('access_token');
             
@@ -55,13 +52,13 @@ export class RoleService {
                 return { success: false, message: 'No access token found' };
             }
             
-            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLE), {
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLEPERMISSION), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(roleData)
+                body: JSON.stringify(permission)
             });
             
             const data = await response.json();
@@ -69,25 +66,24 @@ export class RoleService {
             if (!response.ok) {
                 return { 
                     success: false, 
-                    message: data.message || 'Failed to add role' 
+                    message: data.message || 'Failed to create permission' 
                 };
             }
             
             return {
                 success: true,
-                message: 'Role added successfully'
+                message: 'Permission created successfully'
             };
         } catch (error) {
-            console.error('Error adding role:', error);
+            console.error('Error creating permission:', error);
             return {
                 success: false,
-                message: 'An error occurred while adding the role'
+                message: 'An error occurred while creating the permission'
             };
         }
     }
-    
 
-    static async updateRole(id: string, roleData: UpdateRoleRequest): Promise<{ success: boolean; message: string }> {
+    static async updatePermission(permission: Permission): Promise<{ success: boolean; message: string }> {
         try {
             const token = localStorage.getItem('access_token');
             
@@ -95,40 +91,38 @@ export class RoleService {
                 return { success: false, message: 'No access token found' };
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLE)}/${id}`, {
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLEPERMISSION), {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(roleData)
+                body: JSON.stringify(permission)
             });
             
             const data = await response.json();
-            console.log("Updating role with id:", id);
             
             if (!response.ok) {
                 return { 
                     success: false, 
-                    message: data.message || 'Failed to update role' 
+                    message: data.message || 'Failed to update permission' 
                 };
             }
             
             return {
                 success: true,
-                message: 'Role updated successfully'
+                message: 'Permission updated successfully'
             };
         } catch (error) {
-            console.error('Error updating role:', error);
+            console.error('Error updating permission:', error);
             return {
                 success: false,
-                message: 'An error occurred while updating the role'
+                message: 'An error occurred while updating the permission'
             };
         }
     }
-    
 
-    static async deleteRole(id: string): Promise<{ success: boolean; message: string }> {
+    static async deletePermission(id: string): Promise<{ success: boolean; message: string }> {
         try {
             const token = localStorage.getItem('access_token');
             
@@ -136,33 +130,33 @@ export class RoleService {
                 return { success: false, message: 'No access token found' };
             }
             
-            const response = await fetch(`${getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLE)}/${id}`, {
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ROLESANDPERMISSION.ROLEPERMISSION), {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({ "id": id })
             });
             
             const data = await response.json();
-            console.log("Deleting role with id:", id);
             
             if (!response.ok) {
                 return { 
                     success: false, 
-                    message: data.message || 'Failed to delete role' 
+                    message: data.message || 'Failed to delete permission' 
                 };
             }
             
             return {
                 success: true,
-                message: 'Role deleted successfully'
+                message: 'Permission deleted successfully'
             };
         } catch (error) {
-            console.error('Error deleting role:', error);
+            console.error('Error deleting permission:', error);
             return {
                 success: false,
-                message: 'An error occurred while deleting the role'
+                message: 'An error occurred while deleting the permission'
             };
         }
     }

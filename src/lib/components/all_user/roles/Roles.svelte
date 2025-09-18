@@ -5,63 +5,18 @@
   import TextField from '../../general_components/TextAreaField.svelte';
   import { onMount, createEventDispatcher } from 'svelte';
   import { roles, isLoading, error, roleActions } from '$lib/services/user_roles_and_permission/user.roles.store';
-  import { ROLE_ACCESS_LIST } from '$lib/services/user_roles_and_permission/user.roles.types';
+  import { permissions, isLoading as permissionsLoading, permissionActions } from '$lib/services/user_roles_and_permission/user.permissions.store';
+  import type { RoleApiResponse, CreateRoleRequest, UpdateRoleRequest } from '$lib/services/user_roles_and_permission/user.roles.types';
 
   // Event dispatcher for dialog actions
   const dispatch = createEventDispatcher();
 
-  // Create permissions data from ROLE_ACCESS_LIST
-  const permissionsItems = ROLE_ACCESS_LIST.map((permission, index) => ({
-    id: index + 1,
-    name: permission,
-    description: getPermissionDescription(permission)
-  }));
-
-  // Helper function to generate descriptions for permissions
-  function getPermissionDescription(permission: string): string {
-    const actionMap: Record<string, string> = {
-      'Create': 'Create new',
-      'Delete': 'Delete existing',
-      'Update': 'Modify existing',
-      'View': 'View details of',
-      'ViewAll': 'View all',
-      'Read': 'Read',
-      'See': 'Access to'
-    };
-
-    const resourceMap: Record<string, string> = {
-      'User': 'users',
-      'Client': 'clients',
-      'Job': 'jobs',
-      'JobApplication': 'job applications',
-      'Roles': 'roles',
-      'Analytics': 'analytics data',
-      'Reports': 'reports',
-      'Financials': 'financial data'
-    };
-
-    // Special cases
-    if (permission === 'AllAdmin') return 'Full administrative access';
-
-    // Try to parse the permission name
-    for (const action in actionMap) {
-      if (permission.startsWith(action)) {
-        const remainingPart = permission.substring(action.length);
-        for (const resource in resourceMap) {
-          if (remainingPart === resource) {
-            return `${actionMap[action]} ${resourceMap[resource]}`;
-          }
-        }
-      }
-    }
-
-    // Fallback for permissions that don't match the pattern
-    return `Permission to ${permission.replace(/([A-Z])/g, ' $1').toLowerCase().trim()}`;
-  }
-
   onMount(async () => {
-    // Fetch roles when component mounts
-    await roleActions.fetchRoles();
+    // Fetch roles and permissions when component mounts
+    await Promise.all([
+      roleActions.fetchRoles(),
+      permissionActions.fetchPermissions()
+    ]);
   });
   
   const { isOpen = $bindable(false),} = $props<{ 
@@ -72,13 +27,13 @@
   let roleName = $state('');
   let roleDescription = $state('');
   let isActive = $state(true);
-  let selectedRoleId = $state<number | null>(null);
+  let selectedRoleId = $state<string | null>(null);
   let isEditing = $state(false);
   
-  // Selected permissions
-  let selectedPermissions = $state<string[]>([]);
-  // Track original permissions for comparison
-  let originalPermissions = $state<string[]>([]);
+  // Selected permission IDs (UUIDs)
+  let selectedPermissionIds = $state<string[]>([]);
+  // Track original permission IDs for comparison
+  let originalPermissionIds = $state<string[]>([]);
 
   // Toast state
   let showToast = $state(false);
@@ -87,7 +42,7 @@
 
   // Delete confirmation modal
   let showDeleteModal = $state(false);
-  let roleToDelete = $state<{id: number, name: string} | null>(null);
+  let roleToDelete = $state<{id: string, name: string} | null>(null);
   
   // Loading states
   let isSaving = $state(false);
@@ -116,47 +71,46 @@
     roleName = '';
     roleDescription = '';
     isActive = true;
-    selectedPermissions = [];
-    originalPermissions = [];
+    selectedPermissionIds = [];
+    originalPermissionIds = [];
     selectedRoleId = null;
     isEditing = false;
   }
 
-  function selectRole(role: any) {
+  function selectRole(role: RoleApiResponse) {
     if (!role || role === null) return;
     
-    selectedRoleId = role.id || null;
-    roleName = role.role_name || role.name || '';
-    roleDescription = role.role_description || role.description || '';
+    selectedRoleId = role.id;
+    roleName = role.name || '';
+    roleDescription = role.description || '';
     isActive = role.isActive ?? true;
     
-    // Get permissions from the role data
-    if (role.access && Array.isArray(role.access)) {
-      selectedPermissions = [...role.access];
-      originalPermissions = [...role.access];
-    } else if (role.rolePermissions && Array.isArray(role.rolePermissions)) {
-      const permissions = role.rolePermissions
-        .filter((p: { permissionName: string }) => p && p.permissionName)
-        .map((p: any) => p.permissionName);
-      selectedPermissions = [...permissions];
-      originalPermissions = [...permissions];
+    // Get permission IDs from the role data
+    if (role.permissions && Array.isArray(role.permissions)) {
+      // Permissions are strings, so we can use them directly
+      selectedPermissionIds = [...role.permissions];
+      originalPermissionIds = [...role.permissions];
     } else {
-      selectedPermissions = [];
-      originalPermissions = [];
+      selectedPermissionIds = [];
+      originalPermissionIds = [];
     }
     
     isEditing = true;
   }
 
-  function togglePermission(permission: string) {
-    if (selectedPermissions.includes(permission)) {
-      selectedPermissions = selectedPermissions.filter(p => p !== permission);
+  function togglePermission(permissionId: string) {
+    // Find the permission object to get its name
+    const permission = $permissions.find(p => p.id === permissionId);
+    const permissionName = permission?.name || permissionId;
+    
+    if (selectedPermissionIds.includes(permissionName)) {
+      selectedPermissionIds = selectedPermissionIds.filter(id => id !== permissionName);
     } else {
-      selectedPermissions = [...selectedPermissions, permission];
+      selectedPermissionIds = [...selectedPermissionIds, permissionName];
     }
   }
 
-  function confirmDeleteRole(role: any, event: Event) {
+  function confirmDeleteRole(role: RoleApiResponse, event: Event) {
     // Prevent the click from propagating to the parent (which would select the role)
     event.stopPropagation();
     
@@ -166,11 +120,7 @@
       return;
     }
     
-    if (!role.name) {
-      role.name = 'Unnamed Role'; // Fallback name if missing
-    }
-    
-    roleToDelete = { id: role.id, name: role.name };
+    roleToDelete = { id: role.id, name: role.name || 'Unnamed Role' };
     showDeleteModal = true;
   }
 
@@ -203,49 +153,58 @@
   }
   
   async function handleSaveRole() {
-  if (!roleName.trim()) {
-    showErrorToast('Role name is required');
-    return;
-  }
-  
-  isSaving = true;
-  
-  try {
-    const roleData = {
-      role_name: roleName,
-      role_description: roleDescription,
-      access: selectedPermissions
-    };
-    
-    let result;
-    
-    if (isEditing && selectedRoleId) {
-      // Include the id property for updates
-      result = await roleActions.updateRole({
-        ...roleData,
-        id: selectedRoleId
-      });
-    } else {
-      result = await roleActions.addRole({...roleData,
-      id: -1
-      });
+    if (!roleName.trim()) {
+      showErrorToast('Role name is required');
+      return;
     }
     
-    if (result.success) {
-      showSuccessToast(result.message || `Role ${isEditing ? 'updated' : 'created'} successfully`);
-      if (!isEditing) {
-        resetForm();
+    isSaving = true;
+    
+    try {
+      let result;
+      
+      if (isEditing && selectedRoleId) {
+        // Update existing role
+        const updateData: UpdateRoleRequest = {
+          name: roleName,
+          description: roleDescription,
+          isActive: isActive,
+          permissionIds: selectedPermissionIds
+        };
+        console.log('🔄 Updating role with ID:', selectedRoleId);
+        console.log('📝 Update data being submitted:', updateData);
+        console.log('🔑 Selected permission IDs:', selectedPermissionIds);
+        result = await roleActions.updateRole(selectedRoleId, updateData);
+      } else {
+        // Create new role
+        const createData: CreateRoleRequest = {
+          name: roleName,
+          description: roleDescription,
+          permissionIds: selectedPermissionIds
+        };
+        console.log('✨ Creating new role');
+        console.log('📝 Create data being submitted:', createData);
+        console.log('🔑 Selected permission IDs:', selectedPermissionIds);
+        result = await roleActions.addRole(createData);
       }
-    } else {
-      showErrorToast(result.message || `Failed to ${isEditing ? 'update' : 'create'} role`);
+      
+      console.log('📡 API Response:', result);
+      
+      if (result.success) {
+        showSuccessToast(result.message || `Role ${isEditing ? 'updated' : 'created'} successfully`);
+        if (!isEditing) {
+          resetForm();
+        }
+      } else {
+        showErrorToast(result.message || `Failed to ${isEditing ? 'update' : 'create'} role`);
+      }
+    } catch (error) {
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} role:`, error);
+      showErrorToast(`Failed to ${isEditing ? 'update' : 'create'} role`);
+    } finally {
+      isSaving = false;
     }
-  } catch (error) {
-    console.error(`Error ${isEditing ? 'updating' : 'creating'} role:`, error);
-    showErrorToast(`Failed to ${isEditing ? 'update' : 'create'} role`);
-  } finally {
-    isSaving = false;
   }
-}
 </script>
 
 <Toast 
@@ -328,22 +287,22 @@
                       >
                         <div class="flex justify-between items-center">
                           <div>
-                            <h4 class="font-medium text-gray-800">{role.role_name || 'Unnamed Role'}</h4>
-                            {#if role.role_description}
-                              <p class="text-sm text-gray-600 mt-1">{role.role_description}</p>
+                            <h4 class="font-medium text-gray-800">{role.name || 'Unnamed Role'}</h4>
+                            {#if role.description}
+                              <p class="text-sm text-gray-600 mt-1">{role.description}</p>
                             {/if}
                           </div>
                           <div class="flex items-center space-x-2">
-                            <span class="inline-flex px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                              Active
+                            <span class="inline-flex px-2 py-1 text-xs rounded-full {role.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                              {role.isActive ? 'Active' : 'Inactive'}
                             </span>
                             <button
                               aria-label="Delete role"
                               class="p-1 text-red-500 hover:text-red-700 transition-colors"
                               onclick={(e) => {
-                                console.log('Role being deleted:', role); // Debug log
+                                console.log('Role being deleted:', role);
                                 if (role && role.id) {
-                                  confirmDeleteRole({id: role.id, name: role.role_name || 'Unnamed Role'}, e);
+                                  confirmDeleteRole(role, e);
                                 } else {
                                   e.stopPropagation();
                                   showErrorToast('Cannot delete role: Missing role ID');
@@ -363,11 +322,11 @@
                           <div class="mt-3 pt-3 border-t border-gray-100">
                             <h5 class="text-sm font-medium text-gray-700 mb-2">Role Permissions:</h5>
                             
-                            {#if !role.access || role.access.length === 0}
+                            {#if !role.permissions || role.permissions.length === 0}
                               <div class="text-sm text-gray-500">No permissions assigned</div>
                             {:else}
                               <div class="flex flex-wrap gap-1">
-                                {#each role.access as permission}
+                                {#each role.permissions as permission}
                                   <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
                                     {permission}
                                   </span>
@@ -423,31 +382,35 @@
                   />
                   <label for="isActive" class="ml-2 block text-sm text-gray-700">Active</label>
                 </div>
+                
                 <div>
-                  <label 
-                  role="Permissions"
-                  class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
                   
-                  {#if $isLoading}
+                  {#if $permissionsLoading}
                     <div class="py-2 text-sm text-gray-500">Loading permissions...</div>
+                  {:else if !$permissions || $permissions.length === 0}
+                    <div class="py-2 text-sm text-gray-500">No permissions available</div>
                   {:else}
-                    <div class="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                      {#each permissionsItems as permission}
-                        {#if permission && permission.name}
+                    <div class="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto">
+                      {#each $permissions as permission}
+                        {#if permission && permission.id}
                           <div class="flex items-center">
                             <input
-                              id={permission.name}
+                              id={permission.id}
                               type="checkbox"
-                              checked={selectedPermissions.includes(permission.name)}
-                              onchange={() => togglePermission(permission.name)}
+                              checked={selectedPermissionIds.includes(permission.name)}
+                              onchange={() => togglePermission(permission.id)}
                               class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                             />
                             <div class="ml-2">
-                              <label for={permission.name} class="block text-sm text-gray-700">
+                              <label for={permission.id} class="block text-sm text-gray-700">
                                 {permission.name}
                               </label>
                               {#if permission.description}
                                 <p class="text-xs text-gray-500">{permission.description}</p>
+                              {/if}
+                              {#if permission.category}
+                                <p class="text-xs text-blue-500">Category: {permission.category}</p>
                               {/if}
                             </div>
                           </div>
@@ -456,6 +419,7 @@
                     </div>
                   {/if}
                 </div>
+                
                 <div class="flex justify-end mt-6">
                   <button
                     class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"

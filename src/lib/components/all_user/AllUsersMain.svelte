@@ -4,6 +4,7 @@
   import Dialog from '../general_components/Dialog.svelte';
   import Toast from '../general_components/Toast.svelte';
   import Roles from './roles/Roles.svelte';
+  import Permissions from './permissions/Permissions.svelte';
   import AddNewUser from './add_user/AddNewUser.svelte';
   import type { SystemUser } from '$lib/services/system_user_services/system.user.types';
   import { systemUsers, isLoading, error, selectedUser, systemUserActions } from '$lib/services/system_user_services/system.user.store';
@@ -15,6 +16,7 @@
   let showDeleteDialog = $state(false);
   let showAddUserDialog = $state(false);
   let showRolesDialog = $state(false);
+  let showPermissionsDialog = $state(false);
 
   // Pagination variables
   let currentPage = $state(1);
@@ -72,6 +74,34 @@
     
     console.log('Paginated users set:', paginatedUsers);
   }
+  // Remove the problematic $effect blocks and replace with controlled handlers
+  
+  // Handle search input changes with debouncing
+  let searchTimeout: number;
+  
+  function handleSearchInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    searchTerm = target.value;
+    
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    // Debounce search to avoid excessive calls
+    searchTimeout = setTimeout(() => {
+      currentPage = 1; // Reset to first page when searching
+      updatePaginatedUsers();
+    }, 300); // 300ms delay
+  }
+  
+  // Handle systemUsers changes only when needed
+  function handleSystemUsersUpdate() {
+    if (mounted && $systemUsers) {
+      updatePaginatedUsers();
+    }
+  }
+  
   // Initialize on mount
   onMount(() => {
     searchTerm = '';
@@ -84,33 +114,64 @@
     showAddUserDialog = true;
   }
   
-  async function handleCloseAddUserDialog() {
-    searchTerm = '';
-    showAddUserDialog = false;
-    await loadUsers();
-  }
+  // async function handleCloseAddUserDialog() {
+  //   searchTerm = '';
+  //   showAddUserDialog = false;
+  //   await loadUsers();
+  // }
   
   function openRolesDialog() {
     showRolesDialog = true;
   }
   
+  // async function handleCloseRolesDialog() {
+  //   showRolesDialog = false;
+  //   await loadUsers();
+  // }
+
+  function openPermissionsDialog() {
+    showPermissionsDialog = true;
+  }
+  
+  // async function handleClosePermissionsDialog() {
+  //   showPermissionsDialog = false;
+  //   await loadUsers();
+  // }
+
+    async function handleCloseAddUserDialog() {
+    searchTerm = '';
+    showAddUserDialog = false;
+    await loadUsers();
+    handleSystemUsersUpdate(); // Controlled update
+  }
+  
   async function handleCloseRolesDialog() {
     showRolesDialog = false;
     await loadUsers();
+    handleSystemUsersUpdate(); // Controlled update
+  }
+  
+  async function handleClosePermissionsDialog() {
+    showPermissionsDialog = false;
+    await loadUsers();
+    handleSystemUsersUpdate(); // Controlled update
   }
 
   // Watch for search term changes
-  $effect(() => {    
-      currentPage = 1; // Reset to first page when searching
-      updatePaginatedUsers();
-  });
+  // $effect(() => {
+  //   if (mounted) {
+  //     searchTerm; // Track searchTerm dependency
+  //     currentPage = 1; // Reset to first page when searching
+  //     updatePaginatedUsers();
+  //   }
+  // });
 
-  // Watch for systemUsers changes
-  $effect(() => {
-    if (mounted && $systemUsers) {
-      updatePaginatedUsers();
-    }
-  });
+  // // Watch for systemUsers changes
+  // $effect(() => {
+  //   if (mounted && $systemUsers) {
+  //     updatePaginatedUsers();
+  //   }
+  // });
 
   function goToPage(page: number) {
     if (page >= 1 && page <= totalPages) {
@@ -171,6 +232,11 @@
   on:close={handleCloseRolesDialog} 
 />
 
+<Permissions 
+  isOpen={showPermissionsDialog} 
+  on:close={handleClosePermissionsDialog} 
+/>
+
 <Toast 
   show={showToast}
   message={toastMessage}
@@ -216,7 +282,8 @@
               <input
                 type="text"
                 placeholder="Search users..."
-                bind:value={searchTerm}
+                value={searchTerm}
+                oninput={handleSearchInput}
                 class="border border-gray-300 rounded-lg py-2 px-4 pr-10 focus:outline-none focus:border-grey-500"
               />
               <span class="material-icons-sharp absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -236,6 +303,13 @@
             >
               <span class="material-icons-sharp">add</span>
               Add Role
+            </button>
+            <button
+              class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+              onclick={openPermissionsDialog}
+            >
+              <span class="material-icons-sharp">security</span>
+              Add Permission
             </button>
           </div>
         </div>
