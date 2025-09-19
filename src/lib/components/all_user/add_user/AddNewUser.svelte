@@ -10,15 +10,17 @@
   // Event dispatcher for dialog actions
   const dispatch = createEventDispatcher();
   let allUserData = $state<SystemUser[]>([]);
-  // State variables - initialize with empty values
+  // State variables - updated for new API structure
   let email = $state('');
   let username = $state('');
-  let fullName = $state('');
+  let firstName = $state('');
+  let lastName = $state('');
   let password = $state('');
-  let id = $state(0); // Add this lin
+  let id = $state(0);
   let confirmPassword = $state('');
-  let selectedRoleId = $state<number | null>(null);
-  let selectedUserId = $state<number | null>(null);
+  let selectedRoleIds = $state<string[]>([]);
+  let enableTwoFactor = $state(false);
+  let selectedUserId = $state<string | null>(null);
   let isEditing = $state(false);
   let isActive = $state(true);
 
@@ -69,10 +71,12 @@
   function resetForm() {
     email = '';
     username = '';
-    fullName = '';
+    firstName = '';
+    lastName = '';
     password = '';
     confirmPassword = '';
-    selectedRoleId = null;
+    selectedRoleIds = [];
+    enableTwoFactor = false;
     selectedUserId = null;
     isEditing = false;
     isActive = true;
@@ -91,17 +95,18 @@
       selectedUserId = user.id;
       id = user.id;
       email = user.email || '';
-      username = user.userName || '';
-      fullName = user.fullName || '';
+      username = user.username || '';
+      firstName = user.firstName || '';
+      lastName = user.lastName || '';
       
-      // Get role from the user data
-      if (user.role && user.role.id) {
-        selectedRoleId = user.role.id;
-      } else if (user.roleId) {
-        selectedRoleId = user.roleId;
+      // Get roles from the user data - assuming roles is an array of role IDs
+      if (user.roles && Array.isArray(user.roles)) {
+        selectedRoleIds = user.roles.map((role: any) => typeof role === 'string' ? role : role.id);
       } else {
-        selectedRoleId = null;
+        selectedRoleIds = [];
       }
+      
+      enableTwoFactor = user.twoFactorEnabled || false;
       
       // Clear password fields when editing
       password = '';
@@ -117,6 +122,21 @@
       return;
     }
 
+    if (!username) {
+      showErrorToast('Username is required');
+      return;
+    }
+
+    if (!firstName) {
+      showErrorToast('First name is required');
+      return;
+    }
+
+    if (!lastName) {
+      showErrorToast('Last name is required');
+      return;
+    }
+
     if (!isEditing && !password) {
       showErrorToast('Password is required for new users');
       return;
@@ -127,8 +147,8 @@
       return;
     }
 
-    if (!selectedRoleId) {
-      showErrorToast('Role selection is required');
+    if (!selectedRoleIds || selectedRoleIds.length === 0) {
+      showErrorToast('At least one role must be selected');
       return;
     }
 
@@ -137,15 +157,34 @@
     try {
       if (isEditing && selectedUserId) {
         // Update existing user
-        const userData:EditAdmin = {
+        const userData: EditAdmin = {
           id,
           email,
-          userName: username,
-          fullName: fullName,
-          roleId: selectedRoleId,
+          username: username,
+          firstName: firstName,
+          lastName: lastName,
+          roleIds: selectedRoleIds,
+          enableTwoFactor: enableTwoFactor,
         };
 
+        console.log('=== EDIT USER SUBMISSION ===');
+        console.log('Form Data:', {
+          id,
+          email,
+          username,
+          firstName,
+          lastName,
+          selectedRoleIds,
+          enableTwoFactor,
+          isEditing,
+          selectedUserId
+        });
+        console.log('userData object:', userData);
+        console.log('============================');
+
         const result = await systemUserActions.updateSystemUser(userData);
+        
+        console.log('Update result:', result);
         
         if (result.success) {
           showSuccessToast('User updated successfully');
@@ -155,16 +194,37 @@
         }
       } else {
         // Create new user
-        const userData:AddAdmin = {
+        const userData: AddAdmin = {
           email,
-          userName: username,
-          fullName: fullName,
-          roleId: selectedRoleId,
+          username: username,
+          firstName: firstName,
+          lastName: lastName,
           password,
-          confirmPassword: confirmPassword
+          RoleIds: selectedRoleIds,
+          enableTwoFactor: enableTwoFactor
         };
 
+        console.log('=== CREATE USER SUBMISSION ===');
+        console.log('Form Data:', {
+          email,
+          username,
+          firstName,
+          lastName,
+          password: password ? '[HIDDEN]' : 'empty',
+          confirmPassword: confirmPassword ? '[HIDDEN]' : 'empty',
+          selectedRoleIds,
+          enableTwoFactor,
+          isEditing
+        });
+        console.log('userData object:', {
+          ...userData,
+          password: '[HIDDEN]'
+        });
+        console.log('===============================');
+
         const result = await systemUserActions.addSystemUser(userData);
+        
+        console.log('Create result:', result);
         
         if (result.success) {
           showSuccessToast('User created successfully');
@@ -258,8 +318,8 @@
                         <div>
                           <h4 class="font-medium text-gray-800">{user.email || 'Unnamed User'}</h4>
                        
-                          {#if user && user.userName}
-                            <p class="text-sm text-gray-600 mt-1">Role: {user.roleName || 'No Role'}</p>
+                          {#if user && user.username}
+                            <p class="text-sm text-gray-600 mt-1">Role: {user.roles || 'No Role'}</p>
                           {/if}
                         </div>
                         <div class="flex items-center space-x-2">
@@ -320,9 +380,17 @@
               />
               
               <InputComponent
-                label="Full Name *"
-                placeholder="Enter full name"
-                bind:value={fullName}
+                label="First Name *"
+                placeholder="Enter first name"
+                bind:value={firstName}
+                required={true}
+                icon=""
+              />
+              
+              <InputComponent
+                label="Last Name *"
+                placeholder="Enter last name"
+                bind:value={lastName}
                 required={true}
                 icon=""
               />
@@ -346,7 +414,7 @@
               />
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Roles *</label>
                 
                 {#if $rolesLoading}
                   <div class="py-2 text-sm text-gray-500">Loading roles...</div>
@@ -357,18 +425,32 @@
                 {:else if !$roles || $roles.length === 0}
                   <div class="py-2 text-sm text-gray-500">No roles available</div>
                 {:else}
-                  <select 
-                    bind:value={selectedRoleId}
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-                  >
-                    <option value={null}>Select a role</option>
+                  <div class="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
                     {#each $roles as role}
                       {#if role}
-                        <option value={role.id || role.id}>{role.role_name || role.role_name || 'Unnamed Role'}</option>
+                        <label class="flex items-center">
+                          <input
+                            type="checkbox"
+                            value={role.id}
+                            bind:group={selectedRoleIds}
+                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                          />
+                          <span class="ml-2 text-sm text-gray-700">{role.name || 'Unnamed Role'}</span>
+                        </label>
                       {/if}
                     {/each}
-                  </select>
+                  </div>
                 {/if}
+              </div>
+              
+              <div class="flex items-center">
+                <input
+                  id="enableTwoFactor"
+                  type="checkbox"
+                  bind:checked={enableTwoFactor}
+                  class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                />
+                <label for="enableTwoFactor" class="ml-2 block text-sm text-gray-700">Enable Two-Factor Authentication</label>
               </div>
               
               <div class="flex items-center">

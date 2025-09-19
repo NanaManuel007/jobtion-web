@@ -73,14 +73,17 @@ export class SystemUserService {
             if (!token) {
                 return { success: false, message: 'No access token found' };
             }
+            
             const apiPayload = {
-                username: admin.userName,
-                full_name: admin.fullName, 
                 email: admin.email,
-                role_id: admin.roleId,
+                username: admin.username,
+                firstName: admin.firstName,
+                lastName: admin.lastName,
                 password: admin.password,
-                confirm_password: admin.confirmPassword
+                RoleIds: admin.RoleIds,
+                enableTwoFactor: admin.enableTwoFactor
             };
+            
             const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AUTH.CREATEADMIN), {
                 method: 'POST',
                 headers: {
@@ -122,9 +125,10 @@ export class SystemUserService {
             
             const payload = {
                 'id': admin.id,
-                'role_id': admin.roleId,
-                'full_name': admin.fullName,
-                'username': admin.userName,
+                'roleIds': admin.roleIds,
+                'firstName': admin.firstName,
+                'lastName': admin.lastName,
+                'username': admin.username,
                 'email': admin.email
             };
             

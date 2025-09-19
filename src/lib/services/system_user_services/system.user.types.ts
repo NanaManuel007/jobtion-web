@@ -1,22 +1,25 @@
   
 export type AddAdmin = {
-    userName: string;
-    email: string;
-    roleId: number;
-    fullName: string;
-    password: string;
-    confirmPassword: string;
-  };
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  RoleIds: string[];
+  enableTwoFactor: boolean;
+};
 
-  export type EditAdmin = {
-    id: number;
-    fullName: string;
-    userName: string;
-    email: string;
-    roleId: number;
-  };
+export type EditAdmin = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  roleIds: string[];
+  enableTwoFactor?: boolean;
+};
 
-  export type SystemUser = {
+export type SystemUser = {
     id: string; // UUID
     email: string;
     username: string;
