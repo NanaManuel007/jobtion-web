@@ -2,7 +2,7 @@
 
 export const API_CONFIG = {
     // BASE_URL: 'https://node.jobtiondevs.com/api/jobtion/', 
-    IMAGE_URL: 'https://minio-kogckgccwg40sgkksc4k4o4w.46.202.141.196.sslip.io/jobtion/', 
+    IMAGE_URL: 'https://minio-d4ccc4g40sss88ws4sgcosc4.72.62.132.12.sslip.io/jobtion/', 
     // BASE_URL: 'http://localhost:8080/api/', 
     BASE_URL: 'https://productionapttmh.quinteduhosting.com/api/',  
     ENDPOINTS: {
@@ -11,7 +11,7 @@ export const API_CONFIG = {
             CREATEADMIN: 'admin/auth/admin',
             EDITADMIN: 'update-admin',
             ALLADMINS: 'admin/auth/all',
-        },
+        }, 
         USERS: {
             PROFILE: 'get-user-details',
             UPDATE: '/users/update',

@@ -2,6 +2,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { candidateStore } from '$lib/services/candidate_services/candidate.store';
+    import { API_CONFIG } from '$lib/services/api';
 
     let verifiedCandidates: Array<{
         name: string;
@@ -56,7 +57,7 @@
                 onclick={() => handleView(user.candidateId)}
                 >
                     <img class= "w-16 h-16 rounded-full object-cover "
-                     src={user.image !==null ?"https://minio-kogckgccwg40sgkksc4k4o4w.46.202.141.196.sslip.io/jobtion/"+user.image : 
+                     src={user.image !==null ? API_CONFIG.IMAGE_URL + user.image : 
                      '/user_images/default.jpg'} alt={`${user.name}`} >
 
                     <!-- <img class="w-16 h-16 rounded-full object-cover" src={user.image} alt={user.name} /> -->
